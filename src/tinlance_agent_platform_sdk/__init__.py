@@ -13,11 +13,11 @@ from .compat import (
 from .config import ClientConfig
 from .context import TraceContext
 from .contracts import (
+    GOVERNED_EXECUTION_CONTRACT,
     ApprovalRequest,
     CapabilityDeclaration,
-    ExecutionResult,
     EvidenceReference,
-    GOVERNED_EXECUTION_CONTRACT,
+    ExecutionResult,
     StructuredError,
     canonical_intent_fingerprint,
 )
@@ -34,6 +34,8 @@ from .errors import (
     TransportError,
     UnsupportedMediaTypeError,
 )
+from .idempotency import IdempotencyKey
+from .lifecycle import is_approval_terminal, is_execution_terminal, is_run_terminal
 from .models import (
     Agent,
     ApprovalDecision,
@@ -46,8 +48,6 @@ from .models import (
     Principal,
     Run,
 )
-from .idempotency import IdempotencyKey
-from .lifecycle import is_approval_terminal, is_execution_terminal, is_run_terminal
 from .research import ResearchAgent, ResearchRequest, ResearchRun
 from .tools import ToolContractRegistry, ToolDescriptor, ToolInvocation, ToolResult
 
