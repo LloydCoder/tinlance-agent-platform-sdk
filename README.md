@@ -1,2 +1,175 @@
-# tinlance-agent-platform-sdk
+# Tinlance Agent Platform SDK
+
 Official developer SDK for building secure, governed AI agents on the Tinlance Agent Platform.
+
+[![CI](https://github.com/LloydCoder/tinlance-agent-platform-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/LloydCoder/tinlance-agent-platform-sdk/actions/workflows/ci.yml)
+
+## Overview
+
+The Tinlance Agent Platform SDK is the external, consumer-facing Python client for the Tinlance Agent Platform's versioned HTTP boundary.
+
+It is deliberately a **thin contract layer**, not a second agent runtime or authority engine. The Platform remains authoritative for identity verification, tenant binding, authorization, policy, approvals, tool permissions, secrets, sandboxing, evidence validity, and execution.
+
+The SDK is independent of the Platform repository and does not import Platform implementation packages.
+
+## v0.1 / Platform API 1.1
+
+SDK 0.1.0 targets the currently implemented Platform API 1.1 operation gateway.
+
+| SDK surface | Platform operation |
+| --- | --- |
+| `health()` | `health` |
+| `principal.get()` | `principal.get` |
+| `agents.list()` | `agents.list` |
+| `capabilities.list(agent_id)` | `capabilities.list` |
+| `runs.create(task_id, agent_id, intent)` | `runs.create` |
+| `runs.cancel(run_id)` | `runs.cancel` |
+| `approvals.request(run_id, action, resource, reason)` | `approvals.request` |
+| `runs.events(run_id)` | `runs.events` |
+| `runs.evidence(run_id)` | `runs.evidence` |
+
+The wire endpoint is exactly:
+
+`POST /v1/agent-platform`
+
+The SDK does not fabricate resource-oriented REST endpoints.
+
+## Installation
+
+```bash
+python -m pip install tinlance-agent-platform-sdk
+```
+
+## Quick start
+
+```python
+from tinlance_agent_platform_sdk import AgentPlatform
+
+client = AgentPlatform(
+    base_url="https://platform.example",
+    bearer_token="opaque-credential",
+    tenant_id="tenant-a",
+    subject_id="user-a",
+)
+
+health = client.health()
+print(health.ready)
+
+agents = client.agents.list()
+```
+
+The `tenant_id` and `subject_id` values are request assertions that the Platform verifies against the authenticated principal. They are not local authority grants.
+
+## Authentication and security
+
+The SDK sends an opaque bearer credential:
+
+`Authorization: Bearer <credential>`
+
+It does not assume JWT, OIDC, issuer, audience, or signing semantics. Credential verification is a Platform/deployment responsibility.
+
+Every request has a validated `X-Request-ID`. If one is not supplied, the SDK generates one. Consequential operations send the same request ID as `Idempotency-Key`.
+
+Consequential operations are:
+
+- `runs.create`
+- `runs.cancel`
+- `approvals.request`
+
+The SDK never automatically retries a consequential operation with a new request ID.
+
+Optional W3C `traceparent` can be supplied to the client and is propagated unchanged after strict validation.
+
+## Typed models
+
+The SDK provides immutable typed models for:
+
+- health
+- authenticated principal
+- agents
+- capabilities
+- runs
+- approval references
+- events
+- evidence references
+
+Run and approval lifecycle constants are exposed for interpretation. The SDK does not perform client-side lifecycle transitions.
+
+## Errors
+
+Stable Platform HTTP failures map to typed exceptions:
+
+- `InvalidRequestError` — 400
+- `AuthenticationError` — 401
+- `PermissionError` — 403
+- `IdempotencyConflictError` — 409
+- `RequestTooLargeError` — 413
+- `UnsupportedMediaTypeError` — 415
+- `ApiVersionError` — 426
+- `PlatformError` — 500 and unknown Platform failures
+- `TransportError` — network/transport failure before a valid response
+
+Exceptions preserve the HTTP status and stable Platform error code where available. Authorization tokens are not included in exception messages.
+
+## Deliberately deferred
+
+SDK v0.1 does not expose operations for:
+
+- approval retrieval or approve/reject/cancel
+- direct tool execution or registration
+- event streaming
+- evidence content retrieval
+- pagination
+- webhooks
+- generated OpenAPI clients
+- resource-oriented REST paths
+
+Those capabilities must first become versioned Platform API contracts. This prevents the SDK from becoming a second, invented Platform API.
+
+## Architecture boundary
+
+```
+tinlance-agent-platform-sdk
+        |
+        | versioned HTTP contract
+        v
+Tinlance Agent Platform
+        |
+        +-- identity / tenant authority
+        +-- authorization / policy
+        +-- approvals
+        +-- governed tools
+        +-- secrets / sandbox
+        +-- evidence / execution
+```
+
+The SDK is not an agent runtime, policy engine, sandbox, secrets manager, tool executor, evidence authority, or replacement for the Agent Platform.
+
+## Repository relationship
+
+The Agent Platform repository contains an internal `packages/sdk` domain/composition package. That package is not this project.
+
+`tinlance-agent-platform-sdk` is the **external network client SDK** and must remain independent of Platform internals.
+
+## Contract
+
+The SDK v0.1 contract is documented in [docs/contracts/SDK-V0.1-CONTRACT.md](docs/contracts/SDK-V0.1-CONTRACT.md).
+
+The server-side forensic baseline remains authoritative in the Tinlance Agent Platform repository. If the server API changes, the server contract and executable tests must change before the SDK expands its public surface.
+
+## Development
+
+```bash
+python -m pip install -e ".[test,security]"
+python -m pip check
+ruff check .
+ruff format --check .
+mypy src
+pytest --cov=src --cov-report=term-missing --cov-fail-under=90
+```
+
+Supported Python versions: 3.12, 3.13, and 3.14.
+
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE).
