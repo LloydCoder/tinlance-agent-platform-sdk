@@ -1,10 +1,8 @@
-"""Safe tracing/context propagation primitives for the SDK.
-
-Only transport correlation is modeled here. Context values never grant authority.
-"""
-
 from __future__ import annotations
 
+import re
+from collections.abc import MutableMapping
+from dataclasses import dataclass
 from dataclasses import dataclass
 import re
 from typing import MutableMapping
