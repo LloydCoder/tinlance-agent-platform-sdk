@@ -31,4 +31,4 @@ The SDK is designed to:
 
 ## Supply-chain controls
 
-CI pins GitHub Actions to immutable commit SHAs, uses least-privilege workflow permissions, audits Python dependencies, generates an SBOM, and runs CodeQL/dependency review. Release publishing uses PyPI Trusted Publishing/OIDC rather than a long-lived PyPI token.
+CI pins GitHub Actions to immutable commit SHAs, uses least-privilege workflow permissions, audits Python dependencies, generates an SBOM, and runs CodeQL, pip-audit, and Dependabot dependency updates. Release publishing uses PyPI Trusted Publishing/OIDC rather than a long-lived PyPI token.
