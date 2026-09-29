@@ -35,6 +35,7 @@ class FakePlatform:
         self.requests: list[dict[str, object]] = []
         self.headers: list[dict[str, str]] = []
         self.responses: dict[str, tuple[int, dict[str, object]]] = {}
+        self.raw_responses: dict[str, tuple[int, bytes]] = {}
         self.server = self._server()
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
@@ -51,8 +52,11 @@ class FakePlatform:
                 operation = body["operation"]
                 if not isinstance(operation, str):
                     raise AssertionError("operation must be text")
-                status, response = parent.responses.get(operation, parent._default(operation))
-                raw = json.dumps(response).encode()
+                if operation in parent.raw_responses:
+                    status, raw = parent.raw_responses[operation]
+                else:
+                    status, response = parent.responses.get(operation, parent._default(operation))
+                    raw = json.dumps(response).encode()
                 self.send_response(status)
                 self.send_header("Content-Type", "application/json")
                 self.send_header("X-Tinlance-API-Version", "1.1")
@@ -312,3 +316,125 @@ def test_malformed_success_payload_is_rejected(fake: FakePlatform) -> None:
     fake.responses["health"] = (200, {"status": "ok", "payload": {"ready": "yes"}})
     with pytest.raises(ValueError):
         make_client(fake).health()
+
+
+def test_invalid_traceparent_is_rejected() -> None:
+    with pytest.raises(ValueError):
+        AgentPlatform(
+            base_url="https://example.com",
+            bearer_token=TOKEN,
+            tenant_id=TENANT,
+            subject_id=SUBJECT,
+            traceparent="00-" + "0" * 32 + "-2222222222222222-01",
+        )
+    with pytest.raises(ValueError):
+        AgentPlatform(
+            base_url="https://example.com",
+            bearer_token=TOKEN,
+            tenant_id=TENANT,
+            subject_id=SUBJECT,
+            traceparent="00-11111111111111111111111111111111-" + "0" * 16 + "-01",
+        )
+
+
+@pytest.mark.parametrize(
+    ("operation", "method"),
+    [
+        ("agents.list", "agents"),
+        ("capabilities.list", "capabilities"),
+        ("runs.events", "events"),
+        ("runs.evidence", "evidence"),
+    ],
+)
+def test_malformed_collections_are_rejected(
+    fake: FakePlatform, operation: str, method: str
+) -> None:
+    fake.responses[operation] = (200, {"status": "ok", "payload": {
+        "agents": ["bad"],
+        "capabilities": ["bad"],
+        "events": ["bad"],
+        "evidence": ["bad"],
+    }})
+    sdk = make_client(fake)
+    with pytest.raises(PlatformError):
+        if method == "agents":
+            sdk.agents.list()
+        elif method == "capabilities":
+            sdk.capabilities.list(AGENT_ID)
+        elif method == "events":
+            sdk.runs.events(RUN_ID)
+        else:
+            sdk.runs.evidence(RUN_ID)
+
+
+def test_request_body_size_is_enforced(fake: FakePlatform) -> None:
+    sdk = make_client(fake)
+    with pytest.raises(RequestTooLargeError):
+        sdk.runs.create(TASK_ID, AGENT_ID, "x" * (1024 * 1024))
+
+
+def test_malformed_success_envelopes_are_rejected(fake: FakePlatform) -> None:
+    fake.raw_responses["health"] = (200, b"not-json")
+    with pytest.raises(PlatformError):
+        make_client(fake).health()
+
+    fake.responses["health"] = (200, [])
+    with pytest.raises(PlatformError):
+        make_client(fake).health()
+
+    fake.responses["health"] = (200, {"status": "unexpected", "payload": {}})
+    with pytest.raises(PlatformError):
+        make_client(fake).health()
+
+    fake.responses["health"] = (200, {"status": "ok", "payload": []})
+    with pytest.raises(PlatformError):
+        make_client(fake).health()
+
+
+def test_unknown_http_status_maps_to_platform_error(fake: FakePlatform) -> None:
+    fake.responses["health"] = (418, {"error": "teapot"})
+    with pytest.raises(PlatformError) as exc_info:
+        make_client(fake).health()
+    assert exc_info.value.status_code == 418
+    assert exc_info.value.error_code == "teapot"
+
+
+def test_transport_failure_is_typed() -> None:
+    sdk = AgentPlatform(
+        base_url="http://127.0.0.1:1",
+        bearer_token=TOKEN,
+        tenant_id=TENANT,
+        subject_id=SUBJECT,
+        timeout=0.1,
+    )
+    from tinlance_agent_platform_sdk import TransportError
+
+    with pytest.raises(TransportError):
+        sdk.health()
+
+
+def test_bearer_configuration_rejects_invalid_credentials() -> None:
+    with pytest.raises(ValueError):
+        AgentPlatform(
+            base_url="https://example.com",
+            bearer_token="bad token",
+            tenant_id=TENANT,
+            subject_id=SUBJECT,
+        )
+
+
+def test_model_invalid_payloads_are_rejected(fake: FakePlatform) -> None:
+    fake.responses["agents.list"] = (200, {"status": "ok", "payload": {
+        "agents": [{"agent_id": "bad", "name": "x", "version": "1.0.0"}]
+    }})
+    with pytest.raises(ValueError):
+        make_client(fake).agents.list()
+
+    fake.responses["runs.create"] = (200, {"status": "accepted", "payload": {
+        "run_id": str(RUN_ID),
+        "task_id": str(TASK_ID),
+        "agent_id": str(AGENT_ID),
+        "state": "not-a-state",
+    }})
+    with pytest.raises(ValueError):
+        make_client(fake).runs.create(TASK_ID, AGENT_ID, "intent")
