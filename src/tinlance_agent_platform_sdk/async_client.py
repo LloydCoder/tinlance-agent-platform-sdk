@@ -68,7 +68,9 @@ class _AsyncRuns:
             self._client._sync.runs.cancel, run_id, request_id=request_id
         )
 
-    async def events(self, run_id: UUID | str, *, request_id: str | None = None) -> tuple[Event, ...]:
+    async def events(
+        self, run_id: UUID | str, *, request_id: str | None = None
+    ) -> tuple[Event, ...]:
         return await asyncio.to_thread(
             self._client._sync.runs.events, run_id, request_id=request_id
         )
