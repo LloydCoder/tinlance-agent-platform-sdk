@@ -157,8 +157,9 @@ def test_contract_and_lifecycle_validation_reject_invalid_values() -> None:
         CapabilityDeclaration("", "1", "x")
     with pytest.raises(ValueError):
         IdempotencyKey("")
+    assert not is_execution_terminal("not-a-state")
     with pytest.raises(ValueError):
-        is_execution_terminal("not-a-state")
+        AgentSpec("", "1", "x")
     from tinlance_agent_platform_sdk.lifecycle import (
         validate_approval_state,
         validate_execution_state,
