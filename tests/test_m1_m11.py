@@ -57,10 +57,12 @@ def test_tool_invocation_validates_required_fields() -> None:
 
 
 def test_run_and_approval_models_are_immutable() -> None:
-    run = Run(UUID("00000000-0000-0000-0000-000000000001"),
-              UUID("00000000-0000-0000-0000-000000000002"),
-              "running",
-              UUID("00000000-0000-0000-0000-000000000003"))
+    run = Run(
+        UUID("00000000-0000-0000-0000-000000000001"),
+        UUID("00000000-0000-0000-0000-000000000002"),
+        "running",
+        UUID("00000000-0000-0000-0000-000000000003"),
+    )
     approval = ApprovalRef(UUID("00000000-0000-0000-0000-000000000004"))
     assert run.state == "running"
     assert approval.approval_id.int == 4
@@ -95,9 +97,9 @@ def test_research_request_requires_objective() -> None:
 
 
 def test_research_agent_delegates_to_platform(monkeypatch: pytest.MonkeyPatch) -> None:
-    client = object.__new__(__import__(
-        "tinlance_agent_platform_sdk.client", fromlist=["AgentPlatform"]
-    ).AgentPlatform)
+    client = object.__new__(
+        __import__("tinlance_agent_platform_sdk.client", fromlist=["AgentPlatform"]).AgentPlatform
+    )
 
     class Runs:
         def create(self, task_id, agent_id, intent, *, request_id=None):
