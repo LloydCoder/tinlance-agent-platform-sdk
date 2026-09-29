@@ -13,6 +13,7 @@ from uuid import UUID, uuid4
 from .errors import (
     ApiVersionError,
     AuthenticationError,
+    ExecutionError,
     IdempotencyConflictError,
     InvalidRequestError,
     PermissionError,
@@ -616,6 +617,8 @@ class AgentPlatform:
         message = f"Platform request failed with HTTP {error.code}"
         if isinstance(code, str):
             message = f"{message}: {code}"
+        if error.code == 409 and code != "IDEMPOTENCY_CONFLICT":
+            raise ExecutionError(message, status_code=error.code, error_code=code) from error
         mapping: dict[int, type[PlatformError]] = {
             400: InvalidRequestError,
             401: AuthenticationError,
