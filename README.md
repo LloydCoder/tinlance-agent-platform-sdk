@@ -184,3 +184,61 @@ Supported Python versions: 3.12, 3.13, and 3.14.
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).
+
+
+## M1–M11 SDK surface
+
+The repository follows the canonical SDK sequence:
+
+```text
+M0 Platform contract discovery
+M1 Transport + Client Foundation
+M2 Runs + typed models
+M3 Approvals + governance
+M4 Tools
+M5 Evidence + Events
+M6 Async API
+M7 Research Agent
+M8 Security + compatibility hardening
+M9 v0.1 release
+M10 Production developer experience
+M11 v1.0 readiness
+```
+
+The complete acceptance contract is [docs/ROADMAP-M0-M11.md](docs/ROADMAP-M0-M11.md).
+
+### Async client
+
+The async client reuses the exact audited synchronous transport rather than maintaining a second HTTP implementation:
+
+```python
+from tinlance_agent_platform_sdk import AsyncAgentPlatform, ClientConfig
+
+client = AsyncAgentPlatform(
+    ClientConfig(
+        base_url="https://platform.example",
+        bearer_token="opaque-credential",
+        tenant_id="tenant-a",
+        subject_id="user-a",
+    )
+)
+health = await client.health()
+```
+
+### Tools
+
+Tool descriptors and invocation/result models are available for SDK composition. They
+are metadata contracts only. The SDK cannot authorize or execute a tool locally.
+
+### Research Agent
+
+`ResearchAgent` provides governed research-run composition over the existing
+`runs.create` contract. It intentionally does not fabricate model, tool, run-wait,
+or run-result endpoints that Platform API 1.1 does not publish.
+
+### Compatibility rule
+
+The public SDK operation set is explicitly declared in
+`tinlance_agent_platform_sdk.compat`. New remote operations require a corresponding
+versioned Platform contract and executable server conformance tests before they can be
+added to the public SDK.

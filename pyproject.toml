@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Official developer SDK for building secure, governed AI agents on the Tinlance Agent Platform."
 readme = "README.md"
 license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.12,<3.15"
 authors = [{ name = "Tinlance Limited" }]
 keywords = ["tinlance", "agent-platform", "ai-agents", "agent-sdk", "agentic-ai", "ai-security"]
@@ -21,6 +22,7 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
   "Typing :: Typed",
 ]
+
 dependencies = []
 
 [project.optional-dependencies]
@@ -34,6 +36,11 @@ security = [
   "pip-audit>=2.9,<3",
   "cyclonedx-bom>=7,<8",
 ]
+
+[project.urls]
+Homepage = "https://github.com/LloydCoder/tinlance-agent-platform-sdk"
+Repository = "https://github.com/LloydCoder/tinlance-agent-platform-sdk"
+Issues = "https://github.com/LloydCoder/tinlance-agent-platform-sdk/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/tinlance_agent_platform_sdk"]
