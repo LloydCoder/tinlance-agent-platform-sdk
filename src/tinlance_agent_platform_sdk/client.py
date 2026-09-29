@@ -6,6 +6,7 @@ import json
 import re
 import urllib.error
 import urllib.request
+from urllib.parse import urlsplit
 from typing import Any, NoReturn
 from uuid import UUID, uuid4
 
@@ -24,6 +25,7 @@ from .models import Agent, ApprovalRef, Capability, Event, EvidenceRef, Health, 
 
 API_VERSION = "1.1"
 MAX_REQUEST_BYTES = 1 * 1024 * 1024
+MAX_RESPONSE_BYTES = 8 * 1024 * 1024
 _TRACEPARENT = re.compile(r"^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$")
 
 
@@ -56,6 +58,34 @@ def _required_text(value: str, field: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{field} is required")
     return value
+
+
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(
+        self,
+        req: urllib.request.Request,
+        fp: Any,
+        code: int,
+        msg: str,
+        headers: Any,
+        newurl: str,
+    ) -> None:
+        raise TransportError(
+            "redirects are disabled for authenticated Platform requests"
+        )
+
+
+_EXPECTED_SUCCESS_STATUS: dict[str, str] = {
+    "health": "ok",
+    "principal.get": "ok",
+    "agents.list": "ok",
+    "capabilities.list": "ok",
+    "runs.create": "accepted",
+    "runs.cancel": "accepted",
+    "approvals.request": "accepted",
+    "runs.events": "ok",
+    "runs.evidence": "ok",
+}
 
 
 class _PrincipalResource:
@@ -226,9 +256,18 @@ class AgentPlatform:
         timeout: float = 10.0,
         api_version: str = API_VERSION,
         traceparent: str | None = None,
+        allow_insecure_http: bool = False,
+        max_response_bytes: int = MAX_RESPONSE_BYTES,
     ) -> None:
-        if not base_url.startswith(("http://", "https://")):
-            raise ValueError("base_url must use HTTP or HTTPS")
+        parsed_url = urlsplit(base_url)
+        if parsed_url.scheme not in {"http", "https"} or not parsed_url.hostname:
+            raise ValueError("base_url must be an absolute HTTP(S) URL")
+        if parsed_url.username is not None or parsed_url.password is not None:
+            raise ValueError("base_url must not contain userinfo")
+        if parsed_url.query or parsed_url.fragment:
+            raise ValueError("base_url must not contain query or fragment components")
+        if parsed_url.scheme != "https" and not allow_insecure_http:
+            raise ValueError("base_url must use HTTPS unless allow_insecure_http=True")
         if not bearer_token or any(character.isspace() for character in bearer_token):
             raise ValueError("bearer_token must be non-empty and contain no whitespace")
         self._base_url = base_url.rstrip("/")
@@ -237,6 +276,10 @@ class AgentPlatform:
         self._subject_id = _required_text(subject_id, "subject_id")
         if timeout <= 0:
             raise ValueError("timeout must be positive")
+        if max_response_bytes <= 0:
+            raise ValueError("max_response_bytes must be positive")
+        self._max_response_bytes = max_response_bytes
+        self._opener = urllib.request.build_opener(_NoRedirectHandler)
         self._timeout = timeout
         if api_version != API_VERSION:
             raise ValueError(f"SDK v0.1 supports Platform API version {API_VERSION} only")
@@ -293,10 +336,15 @@ class AgentPlatform:
             method="POST",
         )
         try:
-            with urllib.request.urlopen(request, timeout=self._timeout) as response:
-                response_body = self._decode_response(response.read())
+            with self._opener.open(request, timeout=self._timeout) as response:
+                self._validate_response_headers(response)
+                response_body = self._decode_response(
+                    self._read_limited(response, self._max_response_bytes)
+                )
         except urllib.error.HTTPError as exc:
-            self._raise_http_error(exc)
+            self._raise_http_error(exc, self._max_response_bytes)
+        except TransportError:
+            raise
         except (urllib.error.URLError, TimeoutError, OSError) as exc:
             raise TransportError("request to Tinlance Agent Platform failed") from exc
         if not isinstance(response_body, dict):
@@ -306,7 +354,8 @@ class AgentPlatform:
                 error_code="invalid_response",
             )
         status = response_body.get("status")
-        if status not in {"ok", "accepted"}:
+        expected_status = _EXPECTED_SUCCESS_STATUS.get(operation)
+        if expected_status is None or status != expected_status:
             raise PlatformError(
                 "Platform returned an invalid success envelope",
                 status_code=200,
@@ -322,6 +371,49 @@ class AgentPlatform:
         return payload_value
 
     @staticmethod
+    def _read_limited(stream: Any, maximum: int) -> bytes:
+        content_length = stream.headers.get("Content-Length")
+        if content_length is not None:
+            try:
+                declared = int(content_length)
+            except ValueError as exc:
+                raise PlatformError(
+                    "Platform returned an invalid Content-Length",
+                    error_code="invalid_response",
+                ) from exc
+            if declared < 0 or declared > maximum:
+                raise RequestTooLargeError(
+                    "Platform response exceeds the configured response-body limit",
+                    status_code=200,
+                    error_code="response_too_large",
+                )
+        raw = stream.read(maximum + 1)
+        if len(raw) > maximum:
+            raise RequestTooLargeError(
+                "Platform response exceeds the configured response-body limit",
+                status_code=200,
+                error_code="response_too_large",
+            )
+        return raw
+
+    @staticmethod
+    def _validate_response_headers(response: Any) -> None:
+        content_type = response.headers.get("Content-Type", "")
+        media_type = content_type.split(";", 1)[0].strip().lower()
+        if media_type != "application/json":
+            raise UnsupportedMediaTypeError(
+                "Platform response must use application/json",
+                status_code=200,
+                error_code="invalid_response_content_type",
+            )
+        if response.headers.get("X-Tinlance-API-Version") != API_VERSION:
+            raise ApiVersionError(
+                "Platform response API version does not match the requested version",
+                status_code=200,
+                error_code="api_version_mismatch",
+            )
+
+    @staticmethod
     def _decode_response(raw: bytes) -> Any:
         try:
             return json.loads(raw.decode("utf-8"))
@@ -331,9 +423,32 @@ class AgentPlatform:
             ) from exc
 
     @staticmethod
-    def _raise_http_error(error: urllib.error.HTTPError) -> NoReturn:
+    def _raise_http_error(error: urllib.error.HTTPError, maximum: int) -> NoReturn:
+        if error.code in {301, 302, 303, 307, 308}:
+            raise TransportError("redirects are disabled for authenticated Platform requests") from error
+        content_type = error.headers.get("Content-Type", "")
+        media_type = content_type.split(";", 1)[0].strip().lower()
+        if media_type != "application/json":
+            raise UnsupportedMediaTypeError(
+                "Platform error response must use application/json",
+                status_code=error.code,
+                error_code="invalid_response_content_type",
+            ) from error
+        if error.headers.get("X-Tinlance-API-Version") != API_VERSION:
+            raise ApiVersionError(
+                "Platform error response API version does not match the requested version",
+                status_code=error.code,
+                error_code="api_version_mismatch",
+            ) from error
         try:
-            body = json.loads(error.read().decode("utf-8"))
+            raw = error.read(maximum + 1)
+            if len(raw) > maximum:
+                raise RequestTooLargeError(
+                    "Platform error response exceeds the configured response-body limit",
+                    status_code=error.code,
+                    error_code="response_too_large",
+                )
+            body = json.loads(raw.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError):
             body = {}
         code = body.get("error") if isinstance(body, dict) else None
