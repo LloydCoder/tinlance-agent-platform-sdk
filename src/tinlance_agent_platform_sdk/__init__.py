@@ -12,6 +12,7 @@ from .config import ClientConfig
 from .errors import (
     ApiVersionError,
     AuthenticationError,
+    ExecutionError,
     IdempotencyConflictError,
     InvalidRequestError,
     PermissionError,
@@ -49,6 +50,7 @@ __all__ = [
     "Capability",
     "Event",
     "EvidenceRef",
+    "ExecutionError",
     "Execution",
     "Health",
     "IdempotencyConflictError",
