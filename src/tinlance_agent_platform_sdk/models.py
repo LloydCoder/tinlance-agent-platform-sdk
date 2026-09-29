@@ -80,7 +80,9 @@ class Run:
         task_id = payload.get("task_id")
         state = payload.get("state")
         agent_id = payload.get("agent_id")
-        if not all(isinstance(value, str) and value for value in (run_id, task_id, state, agent_id)):
+        if not all(
+            isinstance(value, str) and value for value in (run_id, task_id, state, agent_id)
+        ):
             raise ValueError("Platform returned an invalid run payload")
         if state not in RUN_STATES:
             raise ValueError("Platform returned an invalid run state")
