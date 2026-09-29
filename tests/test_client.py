@@ -71,34 +71,61 @@ class FakePlatform:
         if operation == "principal.get":
             return 200, {"status": "ok", "payload": {"user_id": SUBJECT}}
         if operation == "agents.list":
-            return 200, {"status": "ok", "payload": {"agents": [{
-                "agent_id": str(AGENT_ID), "name": "security-agent", "version": "1.0.0"
-            }]}}
+            return 200, {
+                "status": "ok",
+                "payload": {
+                    "agents": [
+                        {"agent_id": str(AGENT_ID), "name": "security-agent", "version": "1.0.0"}
+                    ]
+                },
+            }
         if operation == "capabilities.list":
             return 200, {
                 "status": "ok",
                 "payload": {"capabilities": [{"capability_id": "repository.read"}]},
             }
         if operation == "runs.create":
-            return 200, {"status": "accepted", "payload": {
-                "run_id": str(RUN_ID), "task_id": str(TASK_ID), "state": "running",
-                "agent_id": str(AGENT_ID)
-            }}
+            return 200, {
+                "status": "accepted",
+                "payload": {
+                    "run_id": str(RUN_ID),
+                    "task_id": str(TASK_ID),
+                    "state": "running",
+                    "agent_id": str(AGENT_ID),
+                },
+            }
         if operation == "runs.cancel":
-            return 200, {"status": "accepted", "payload": {
-                "run_id": str(RUN_ID), "task_id": str(TASK_ID), "state": "cancelled",
-                "agent_id": str(AGENT_ID)
-            }}
+            return 200, {
+                "status": "accepted",
+                "payload": {
+                    "run_id": str(RUN_ID),
+                    "task_id": str(TASK_ID),
+                    "state": "cancelled",
+                    "agent_id": str(AGENT_ID),
+                },
+            }
         if operation == "approvals.request":
             return 200, {"status": "accepted", "payload": {"approval_id": str(APPROVAL_ID)}}
         if operation == "runs.events":
-            return 200, {"status": "ok", "payload": {"events": [{
-                "event_id": str(EVENT_ID), "event_type": "run.created",
-                "occurred_at": "2026-09-29T09:00:00+00:00",
-                "request_id": "request-id", "correlation_id": "request-id",
-                "workspace_id": TENANT, "task_id": None, "agent_id": None,
-                "platform_run_id": str(RUN_ID), "payload": {"task_id": str(TASK_ID)}
-            }]}}
+            return 200, {
+                "status": "ok",
+                "payload": {
+                    "events": [
+                        {
+                            "event_id": str(EVENT_ID),
+                            "event_type": "run.created",
+                            "occurred_at": "2026-09-29T09:00:00+00:00",
+                            "request_id": "request-id",
+                            "correlation_id": "request-id",
+                            "workspace_id": TENANT,
+                            "task_id": None,
+                            "agent_id": None,
+                            "platform_run_id": str(RUN_ID),
+                            "payload": {"task_id": str(TASK_ID)},
+                        }
+                    ]
+                },
+            }
         if operation == "runs.evidence":
             return 200, {
                 "status": "ok",
@@ -136,9 +163,12 @@ def test_v1_1_public_surface(fake: FakePlatform) -> None:
     assert sdk.capabilities.list(AGENT_ID)[0].capability_id == "repository.read"
     assert sdk.runs.create(TASK_ID, AGENT_ID, "inspect repository").run_id == RUN_ID
     assert sdk.runs.cancel(RUN_ID).state == "cancelled"
-    assert sdk.approvals.request(
-        RUN_ID, "security.scan", "repo:example", "governed approval required"
-    ).approval_id == APPROVAL_ID
+    assert (
+        sdk.approvals.request(
+            RUN_ID, "security.scan", "repo:example", "governed approval required"
+        ).approval_id
+        == APPROVAL_ID
+    )
     assert sdk.runs.events(RUN_ID)[0].event_id == EVENT_ID
     assert sdk.runs.evidence(RUN_ID)[0].evidence_id == EVIDENCE_ID
 
