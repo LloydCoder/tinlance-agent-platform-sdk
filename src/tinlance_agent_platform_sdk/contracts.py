@@ -6,9 +6,9 @@ approve an action, authorize a principal, execute a tool, or validate server pol
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from hashlib import sha256
-import json
 from typing import Any, Literal
 from uuid import UUID
 
@@ -53,7 +53,11 @@ class CapabilityDeclaration:
     tool_names: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        if not self.capability_id.strip() or not self.version.strip() or not self.description.strip():
+        if (
+            not self.capability_id.strip()
+            or not self.version.strip()
+            or not self.description.strip()
+        ):
             raise ValueError("capability declaration requires id, version, and description")
         if any(not item.strip() for item in self.scopes + self.tool_names):
             raise ValueError("capability declaration entries must be non-empty")
