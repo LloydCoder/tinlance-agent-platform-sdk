@@ -240,6 +240,7 @@ class _ApprovalsResource:
         reason: str,
         *,
         intent_fingerprint: str | None = None,
+        execution_intent: dict[str, Any] | None = None,
         request_id: str | None = None,
         idempotency_key: str | None = None,
     ) -> ApprovalRef:
@@ -258,6 +259,11 @@ class _ApprovalsResource:
                             )
                         }
                         if intent_fingerprint is not None
+                        else {}
+                    ),
+                    **(
+                        {"execution_intent": execution_intent}
+                        if execution_intent is not None
                         else {}
                     ),
                 },
