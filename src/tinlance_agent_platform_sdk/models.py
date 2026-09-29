@@ -82,6 +82,8 @@ class Run:
         agent_id = payload.get("agent_id")
         if not all(isinstance(value, str) and value for value in (run_id, task_id, state, agent_id)):
             raise ValueError("Platform returned an invalid run payload")
+        if state not in RUN_STATES:
+            raise ValueError("Platform returned an invalid run state")
         return cls(_uuid(run_id), _uuid(task_id), state, _uuid(agent_id))
 
 
@@ -130,6 +132,8 @@ class Event:
             parsed_time = datetime.fromisoformat(payload["occurred_at"])
         except ValueError as exc:
             raise ValueError("Platform returned an invalid event timestamp") from exc
+        if parsed_time.tzinfo is None or parsed_time.utcoffset() is None:
+            raise ValueError("Platform returned a timezone-naive event timestamp")
         task_id = payload.get("task_id")
         agent_id = payload.get("agent_id")
         if task_id is not None and not isinstance(task_id, str):
