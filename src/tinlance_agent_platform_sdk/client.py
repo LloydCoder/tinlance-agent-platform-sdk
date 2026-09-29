@@ -468,7 +468,11 @@ class AgentPlatform:
                 status_code=error.code,
                 error_code="invalid_response",
             ) from exc
-        if not isinstance(body, dict) or not isinstance(body.get("error"), str) or not body["error"]:
+        if (
+            not isinstance(body, dict)
+            or not isinstance(body.get("error"), str)
+            or not body["error"]
+        ):
             raise PlatformError(
                 "Platform returned an invalid error response",
                 status_code=error.code,
