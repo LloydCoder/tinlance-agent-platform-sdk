@@ -386,6 +386,11 @@ class AgentPlatform:
                     error_code="response_too_large",
                 )
         raw = stream.read(maximum + 1)
+        if not isinstance(raw, bytes):
+            raise PlatformError(
+                "Platform returned a non-byte response body",
+                error_code="invalid_response",
+            )
         if len(raw) > maximum:
             raise RequestTooLargeError(
                 "Platform response exceeds the configured response-body limit",
