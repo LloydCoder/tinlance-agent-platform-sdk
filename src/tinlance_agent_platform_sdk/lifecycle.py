@@ -9,9 +9,7 @@ from typing import Final
 
 from .contracts import ApprovalState, ExecutionState
 
-RUN_TERMINAL_STATES: Final[frozenset[str]] = frozenset(
-    {"succeeded", "failed", "cancelled"}
-)
+RUN_TERMINAL_STATES: Final[frozenset[str]] = frozenset({"succeeded", "failed", "cancelled"})
 APPROVAL_TERMINAL_STATES: Final[frozenset[str]] = frozenset(
     {"rejected", "expired", "cancelled", "consumed"}
 )
