@@ -2,6 +2,7 @@
 
 **SDK:** 0.1.0  
 **Platform API:** 1.1  
+**Governed execution contract:** `governed-execution.v1`  
 **Endpoint:** `POST /v1/agent-platform`  
 **Status:** implementation contract
 
@@ -31,7 +32,7 @@ Required headers:
 
 Optional:
 
-- `Idempotency-Key` — for consequential operations it is the same value as `X-Request-ID`
+- `Idempotency-Key` — independent idempotency key for consequential operations; it is scoped to the authenticated tenant and request fingerprint
 - `traceparent` — strict W3C Trace Context value
 
 The request body is JSON and the current Platform boundary limits it to 1 MiB.
@@ -75,6 +76,9 @@ Stable mappings are 400 `invalid_request`, 401 `unauthorized`, 403 `forbidden`, 
 | `runs.create(task_id, agent_id, intent)` | `runs.create` | yes |
 | `runs.cancel(run_id)` | `runs.cancel` | yes |
 | `approvals.request(run_id, action, resource, reason)` | `approvals.request` | yes |
+| `approvals.decide(approval_id, approved)` | `approvals.decide` | yes |
+| `tools.execute(run_id, agent_id, invocation, ...)` | `tools.execute` | yes |
+| `executions.get(execution_id)` | `executions.get` | no |
 | `runs.events(run_id)` | `runs.events` | no |
 | `runs.evidence(run_id)` | `runs.evidence` | no |
 
@@ -82,7 +86,7 @@ No other remote operation is exposed by SDK v0.1.
 
 ## Idempotency
 
-The Platform guards `runs.create`, `runs.cancel`, and `approvals.request`.
+The Platform guards `runs.create`, `runs.cancel`, `approvals.request`, `approvals.decide`, and `tools.execute`. R10 execution uses a distinct idempotency key from the request ID when the caller supplies one; the server fingerprints security-relevant execution intent and rejects conflicting reuse.
 
 For a caller-supplied request ID, a retry must reuse the same request ID. The SDK does not automatically retry consequential requests because the reference Platform's idempotency store is bounded in-memory state rather than a distributed exactly-once guarantee.
 
@@ -110,7 +114,11 @@ pending
 approved
 rejected
 expired
+cancelled
+consumed
 ```
+
+R10 execution states include `requested`, `waiting_approval`, `authorized`, `running`, `completed`, `failed`, `timed_out`, `cancelled`, `denied`, `budget_exceeded`, and `outcome_unknown`.
 
 The SDK represents these values; it does not transition them locally.
 
@@ -122,7 +130,6 @@ Until the Platform publishes corresponding versioned operations, SDK v0.1 does n
 - `runs.wait`
 - approval get/approve/reject/cancel
 - `tools.list`
-- `tools.execute`
 - event streaming
 - evidence content retrieval
 - pagination
