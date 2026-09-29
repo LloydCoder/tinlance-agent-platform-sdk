@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 from urllib.parse import urlsplit
 
 from .client import API_VERSION, MAX_RESPONSE_BYTES, _normalize_request_id, _validate_traceparent
@@ -51,7 +52,7 @@ class ClientConfig:
     def normalized_request_id(self, value: str) -> str:
         return _normalize_request_id(value)
 
-    def as_client_kwargs(self) -> dict[str, object]:
+    def as_client_kwargs(self) -> dict[str, Any]:
         return {
             "base_url": self.base_url,
             "bearer_token": self.bearer_token,
