@@ -12,7 +12,18 @@ from uuid import UUID
 
 from .client import AgentPlatform
 from .config import ClientConfig
-from .models import Agent, ApprovalDecision, ApprovalRef, Capability, Event, EvidenceRef, Execution, Health, Principal, Run
+from .models import (
+    Agent,
+    ApprovalDecision,
+    ApprovalRef,
+    Capability,
+    Event,
+    EvidenceRef,
+    Execution,
+    Health,
+    Principal,
+    Run,
+)
 from .tools import ToolInvocation
 
 
