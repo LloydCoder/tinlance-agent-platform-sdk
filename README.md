@@ -80,6 +80,17 @@ The SDK never automatically retries a consequential operation with a new request
 
 Optional W3C `traceparent` can be supplied to the client and is propagated unchanged after strict validation.
 
+### M0 transport hardening
+
+- HTTPS is required by default; local HTTP requires explicit `allow_insecure_http=True`.
+- Automatic redirects are disabled for authenticated requests.
+- Response API version must be exactly `1.1`.
+- Response media type must be `application/json`.
+- Response bodies are bounded (default 8 MiB; configurable with `max_response_bytes`).
+- Success envelopes are validated against the specific operation's contract.
+
+See [docs/M0.md](docs/M0.md) for the complete M0 acceptance gates.
+
 ## Typed models
 
 The SDK provides immutable typed models for:
