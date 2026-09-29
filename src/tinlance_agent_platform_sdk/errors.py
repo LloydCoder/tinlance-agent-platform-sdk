@@ -48,3 +48,7 @@ class UnsupportedMediaTypeError(PlatformError):
 
 class RequestTooLargeError(PlatformError):
     """The Platform rejected a request exceeding the size limit."""
+
+
+class ExecutionError(PlatformError):
+    """Structured failure from the governed-execution.v1 authority boundary."""
