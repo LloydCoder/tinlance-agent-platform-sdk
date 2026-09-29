@@ -97,6 +97,7 @@ _EXPECTED_SUCCESS_STATUS: dict[str, str] = {
     "approvals.request": "accepted",
     "approvals.decide": "accepted",
     "tools.execute": "accepted",
+    "executions.get": "ok",
     "runs.events": "ok",
     "runs.evidence": "ok",
 }
@@ -620,7 +621,7 @@ class AgentPlatform:
         message = f"Platform request failed with HTTP {error.code}"
         if isinstance(code, str):
             message = f"{message}: {code}"
-        if error.code == 409 and code != "IDEMPOTENCY_CONFLICT":
+        if error.code == 409 and code.upper() != "IDEMPOTENCY_CONFLICT":
             raise ExecutionError(message, status_code=error.code, error_code=code) from error
         mapping: dict[int, type[PlatformError]] = {
             400: InvalidRequestError,
