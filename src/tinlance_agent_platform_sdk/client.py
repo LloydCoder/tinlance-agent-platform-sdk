@@ -274,8 +274,6 @@ class _ApprovalsResource:
             )
         )
 
-
-
     def decide(
         self,
         approval_id: UUID | str,
