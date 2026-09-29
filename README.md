@@ -214,12 +214,14 @@ The async client reuses the exact audited synchronous transport rather than main
 ```python
 from tinlance_agent_platform_sdk import AsyncAgentPlatform, ClientConfig
 
-client = AsyncAgentPlatform(ClientConfig(
-    base_url="https://platform.example",
-    bearer_token="opaque-credential",
-    tenant_id="tenant-a",
-    subject_id="user-a",
-))
+client = AsyncAgentPlatform(
+    ClientConfig(
+        base_url="https://platform.example",
+        bearer_token="opaque-credential",
+        tenant_id="tenant-a",
+        subject_id="user-a",
+    )
+)
 health = await client.health()
 ```
 
