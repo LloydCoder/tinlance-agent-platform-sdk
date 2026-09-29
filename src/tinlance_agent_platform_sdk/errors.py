@@ -15,11 +15,32 @@ class PlatformError(SdkError):
     """Platform returned an HTTP error or malformed success response."""
 
     def __init__(
-        self, message: str, *, status_code: int | None = None, error_code: str | None = None
+        self,
+        message: str,
+        *,
+        status_code: int | None = None,
+        error_code: str | None = None,
+        request_id: str | None = None,
+        operation: str | None = None,
+        retryable: bool = False,
     ):
         super().__init__(message)
         self.status_code = status_code
         self.error_code = error_code
+        self.request_id = request_id
+        self.operation = operation
+        self.retryable = retryable
+
+    def as_structured(self) -> dict[str, object]:
+        """Return safe, machine-readable error metadata without credentials."""
+        return {
+            "code": self.error_code or self.__class__.__name__,
+            "message": str(self),
+            "status_code": self.status_code,
+            "request_id": self.request_id,
+            "operation": self.operation,
+            "retryable": self.retryable,
+        }
 
 
 class AuthenticationError(PlatformError):
