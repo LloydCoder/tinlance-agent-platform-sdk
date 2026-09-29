@@ -21,7 +21,6 @@ from .errors import (
     TransportError,
     UnsupportedMediaTypeError,
 )
-from .tools import ToolInvocation
 from .models import (
     Agent,
     ApprovalDecision,
@@ -34,6 +33,7 @@ from .models import (
     Principal,
     Run,
 )
+from .tools import ToolInvocation
 
 API_VERSION = "1.1"
 MAX_REQUEST_BYTES = 1 * 1024 * 1024
@@ -251,8 +251,11 @@ class _ApprovalsResource:
                     "resource": _required_text(resource, "resource"),
                     "reason": _required_text(reason, "reason"),
                     **(
-                        {"intent_fingerprint": _required_text(intent_fingerprint, "intent_fingerprint")}
-                        if intent_fingerprint is not None else {}
+                        {"intent_fingerprint": _required_text(
+                            intent_fingerprint, "intent_fingerprint"
+                        )}
+                        if intent_fingerprint is not None
+                        else {}
                     ),
                 },
                 request_id=request_id,
