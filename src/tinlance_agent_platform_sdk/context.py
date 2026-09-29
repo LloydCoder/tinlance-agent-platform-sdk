@@ -4,7 +4,6 @@ import re
 from collections.abc import MutableMapping
 from dataclasses import dataclass
 
-
 _TRACEPARENT = re.compile(r"^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$")
 _TRACESTATE_MAX = 512
 
