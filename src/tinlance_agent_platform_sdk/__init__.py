@@ -21,7 +21,18 @@ from .errors import (
     TransportError,
     UnsupportedMediaTypeError,
 )
-from .models import Agent, ApprovalRef, Capability, Event, EvidenceRef, Health, Principal, Run
+from .models import (
+    Agent,
+    ApprovalDecision,
+    ApprovalRef,
+    Capability,
+    Event,
+    EvidenceRef,
+    Execution,
+    Health,
+    Principal,
+    Run,
+)
 from .research import ResearchAgent, ResearchRequest, ResearchRun
 from .tools import ToolContractRegistry, ToolDescriptor, ToolInvocation, ToolResult
 
@@ -32,11 +43,13 @@ __all__ = [
     "ClientConfig",
     "DEFERRED_OPERATIONS",
     "ApiVersionError",
+    "ApprovalDecision",
     "ApprovalRef",
     "AuthenticationError",
     "Capability",
     "Event",
     "EvidenceRef",
+    "Execution",
     "Health",
     "IdempotencyConflictError",
     "InvalidRequestError",
