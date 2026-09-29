@@ -522,10 +522,10 @@ def test_operation_specific_success_status_is_verified(fake: FakePlatform, opera
                 {"ready": True}
                 if operation == "health"
                 else {
-                "run_id": str(RUN_ID),
-                "task_id": str(TASK_ID),
-                "state": "running",
-                "agent_id": str(AGENT_ID),
+                    "run_id": str(RUN_ID),
+                    "task_id": str(TASK_ID),
+                    "state": "running",
+                    "agent_id": str(AGENT_ID),
                 },
             ),
         },
