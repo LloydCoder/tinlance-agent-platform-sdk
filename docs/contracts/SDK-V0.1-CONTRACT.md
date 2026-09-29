@@ -36,6 +36,8 @@ Optional:
 
 The request body is JSON and the current Platform boundary limits it to 1 MiB.
 
+The SDK additionally requires HTTPS by default. Explicit `allow_insecure_http=True` is available for controlled local/test environments only.
+
 ## Response
 
 Success:
@@ -57,6 +59,8 @@ Error:
 ```json
 {"error":"error_code"}
 ```
+
+Responses must advertise `X-Tinlance-API-Version: 1.1` and use `Content-Type: application/json` (optional media-type parameters are allowed). The SDK rejects mismatches. SDK response bodies are bounded by a configurable limit (8 MiB by default).
 
 Stable mappings are 400 `invalid_request`, 401 `unauthorized`, 403 `forbidden`, 409 `idempotency_conflict`, 413 `request_too_large`, 415 `json_required`, 426 `api_version_required`, and 500 `platform_error`.
 
@@ -145,3 +149,7 @@ A future API version must be introduced by the Platform contract first. The SDK 
 6. Historical planning material.
 
 If a discrepancy appears, implementation must follow the server contract rather than an SDK-side assumption.
+
+## M0 security foundation
+
+SDK M0 is documented and enforced in [docs/M0.md](../M0.md). The M0 boundary is fail-closed for HTTPS, redirects, response API version, response media type, response size, and operation-specific success status. No additional remote operations are introduced.
