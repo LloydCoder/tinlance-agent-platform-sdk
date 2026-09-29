@@ -109,7 +109,7 @@ class AsyncAgentPlatform:
 
     def __init__(self, config: ClientConfig | None = None, **kwargs: Any) -> None:
         if config is not None:
-            self._sync = AgentPlatform(**config.as_client_kwargs())  # type: ignore[arg-type]
+            self._sync = AgentPlatform(**config.as_client_kwargs())
         else:
             self._sync = AgentPlatform(**kwargs)
         self.principal = _AsyncPrincipal(self)
