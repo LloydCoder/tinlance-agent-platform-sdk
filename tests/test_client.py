@@ -350,12 +350,18 @@ def test_invalid_traceparent_is_rejected() -> None:
 def test_malformed_collections_are_rejected(
     fake: FakePlatform, operation: str, method: str
 ) -> None:
-    fake.responses[operation] = (200, {"status": "ok", "payload": {
-        "agents": ["bad"],
-        "capabilities": ["bad"],
-        "events": ["bad"],
-        "evidence": ["bad"],
-    }})
+    fake.responses[operation] = (
+        200,
+        {
+            "status": "ok",
+            "payload": {
+                "agents": ["bad"],
+                "capabilities": ["bad"],
+                "events": ["bad"],
+                "evidence": ["bad"],
+            },
+        },
+    )
     sdk = make_client(fake)
     with pytest.raises(PlatformError):
         if method == "agents":
@@ -423,17 +429,27 @@ def test_bearer_configuration_rejects_invalid_credentials() -> None:
 
 
 def test_model_invalid_payloads_are_rejected(fake: FakePlatform) -> None:
-    fake.responses["agents.list"] = (200, {"status": "ok", "payload": {
-        "agents": [{"agent_id": "bad", "name": "x", "version": "1.0.0"}]
-    }})
+    fake.responses["agents.list"] = (
+        200,
+        {
+            "status": "ok",
+            "payload": {"agents": [{"agent_id": "bad", "name": "x", "version": "1.0.0"}]},
+        },
+    )
     with pytest.raises(ValueError):
         make_client(fake).agents.list()
 
-    fake.responses["runs.create"] = (200, {"status": "accepted", "payload": {
-        "run_id": str(RUN_ID),
-        "task_id": str(TASK_ID),
-        "agent_id": str(AGENT_ID),
-        "state": "not-a-state",
-    }})
+    fake.responses["runs.create"] = (
+        200,
+        {
+            "status": "accepted",
+            "payload": {
+                "run_id": str(RUN_ID),
+                "task_id": str(TASK_ID),
+                "agent_id": str(AGENT_ID),
+                "state": "not-a-state",
+            },
+        },
+    )
     with pytest.raises(ValueError):
         make_client(fake).runs.create(TASK_ID, AGENT_ID, "intent")
