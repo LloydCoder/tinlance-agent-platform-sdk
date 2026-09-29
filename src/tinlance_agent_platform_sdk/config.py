@@ -6,7 +6,8 @@ from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlsplit
 
-from .client import API_VERSION, MAX_RESPONSE_BYTES, _normalize_request_id, _validate_traceparent
+from .client import API_VERSION, MAX_RESPONSE_BYTES, _normalize_request_id
+from .context import TraceContext
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,6 +21,8 @@ class ClientConfig:
     timeout: float = 10.0
     api_version: str = API_VERSION
     traceparent: str | None = None
+    tracestate: str | None = None
+    trace_context: TraceContext | None = None
     allow_insecure_http: bool = False
     max_response_bytes: int = MAX_RESPONSE_BYTES
     user_agent: str = "tinlance-agent-platform-sdk/0.1.0"
@@ -46,8 +49,16 @@ class ClientConfig:
             raise ValueError("max_response_bytes must be positive")
         if not self.user_agent.strip():
             raise ValueError("user_agent must be non-empty")
-        if self.traceparent is not None:
-            _validate_traceparent(self.traceparent)
+        if self.trace_context is not None and (
+            self.traceparent is not None or self.tracestate is not None
+        ):
+            raise ValueError("trace_context cannot be combined with traceparent/tracestate")
+        if self.trace_context is None and self.traceparent is not None:
+            TraceContext(self.traceparent, self.tracestate)
+        elif self.trace_context is None and self.tracestate is not None:
+            raise ValueError("tracestate requires traceparent")
+        if self.trace_context is not None:
+            TraceContext(self.trace_context.traceparent, self.trace_context.tracestate)
 
     def normalized_request_id(self, value: str) -> str:
         return _normalize_request_id(value)
@@ -61,6 +72,8 @@ class ClientConfig:
             "timeout": self.timeout,
             "api_version": self.api_version,
             "traceparent": self.traceparent,
+            "tracestate": self.tracestate,
+            "trace_context": self.trace_context,
             "allow_insecure_http": self.allow_insecure_http,
             "max_response_bytes": self.max_response_bytes,
             "user_agent": self.user_agent,
