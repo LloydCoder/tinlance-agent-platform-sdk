@@ -13,6 +13,8 @@ PUBLIC_OPERATIONS = frozenset(
         "runs.create",
         "runs.cancel",
         "approvals.request",
+        "approvals.decide",
+        "tools.execute",
         "runs.events",
         "runs.evidence",
     }
@@ -26,7 +28,6 @@ DEFERRED_OPERATIONS = frozenset(
         "approvals.reject",
         "approvals.cancel",
         "tools.list",
-        "tools.execute",
         "events.stream",
         "evidence.get",
         "pagination",
