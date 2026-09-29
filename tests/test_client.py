@@ -558,3 +558,30 @@ def test_redirects_are_disabled(fake: FakePlatform) -> None:
     fake.redirect_locations["health"] = "http://127.0.0.1:9/"
     with pytest.raises(TransportError, match="redirects are disabled"):
         make_client(fake).health()
+
+
+def test_malformed_http_error_json_fails_closed(fake: FakePlatform) -> None:
+    fake.raw_responses["health"] = (400, b'{"unexpected":"shape"}')
+    with pytest.raises(PlatformError) as exc_info:
+        make_client(fake).health()
+    assert exc_info.value.error_code == "invalid_response"
+
+    fake.raw_responses["health"] = (400, b"not-json")
+    with pytest.raises(PlatformError) as exc_info:
+        make_client(fake).health()
+    assert exc_info.value.error_code == "invalid_response"
+
+
+def test_oversized_http_error_is_rejected(fake: FakePlatform) -> None:
+    sdk = AgentPlatform(
+        base_url=f"http://127.0.0.1:{fake.server.server_address[1]}",
+        bearer_token=TOKEN,
+        tenant_id=TENANT,
+        subject_id=SUBJECT,
+        allow_insecure_http=True,
+        max_response_bytes=32,
+    )
+    fake.raw_responses["health"] = (400, b'{"error":"' + b"x" * 64 + b'"}')
+    with pytest.raises(RequestTooLargeError) as exc_info:
+        sdk.health()
+    assert exc_info.value.error_code == "response_too_large"

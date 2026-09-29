@@ -452,16 +452,33 @@ class AgentPlatform:
             ) from error
         try:
             raw = error.read(maximum + 1)
-            if len(raw) > maximum:
-                raise RequestTooLargeError(
-                    "Platform error response exceeds the configured response-body limit",
-                    status_code=error.code,
-                    error_code="response_too_large",
-                )
+        except OSError as exc:
+            raise TransportError("failed to read the Platform error response") from exc
+        if len(raw) > maximum:
+            raise RequestTooLargeError(
+                "Platform error response exceeds the configured response-body limit",
+                status_code=error.code,
+                error_code="response_too_large",
+            ) from error
+        try:
             body = json.loads(raw.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError):
-            body = {}
-        code = body.get("error") if isinstance(body, dict) else None
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise PlatformError(
+                "Platform returned an invalid JSON error response",
+                status_code=error.code,
+                error_code="invalid_response",
+            ) from exc
+        if (
+            not isinstance(body, dict)
+            or not isinstance(body.get("error"), str)
+            or not body["error"]
+        ):
+            raise PlatformError(
+                "Platform returned an invalid error response",
+                status_code=error.code,
+                error_code="invalid_response",
+            ) from error
+        code = body["error"]
         message = f"Platform request failed with HTTP {error.code}"
         if isinstance(code, str):
             message = f"{message}: {code}"

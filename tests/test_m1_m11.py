@@ -151,3 +151,14 @@ def test_compatibility_matrix() -> None:
 
     assert supports_platform_api("1.1") is True
     assert supports_platform_api("9.9") is False
+
+
+def test_tool_descriptor_rejects_incomplete_contracts() -> None:
+    with pytest.raises(ValueError):
+        ToolDescriptor("", "research.read", "Search")
+    with pytest.raises(ValueError):
+        ToolDescriptor("search", "", "Search")
+    with pytest.raises(ValueError):
+        ToolDescriptor("search", "research.read", "")
+    with pytest.raises(ValueError):
+        ToolDescriptor("search", "research.read", "Search", "")

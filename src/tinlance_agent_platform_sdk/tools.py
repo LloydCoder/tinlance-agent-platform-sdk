@@ -17,6 +17,12 @@ class ToolDescriptor:
     description: str
     version: str = "1"
 
+    def __post_init__(self) -> None:
+        if not self.name.strip() or not self.capability.strip() or not self.description.strip():
+            raise ValueError("tool descriptor requires name, capability, and description")
+        if not self.version.strip():
+            raise ValueError("tool descriptor version is required")
+
 
 @dataclass(frozen=True, slots=True)
 class ToolInvocation:
