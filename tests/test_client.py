@@ -16,6 +16,7 @@ from tinlance_agent_platform_sdk import (
     PermissionError,
     PlatformError,
     RequestTooLargeError,
+    TransportError,
     UnsupportedMediaTypeError,
 )
 
@@ -407,8 +408,6 @@ def test_transport_failure_is_typed() -> None:
         subject_id=SUBJECT,
         timeout=0.1,
     )
-    from tinlance_agent_platform_sdk import TransportError
-
     with pytest.raises(TransportError):
         sdk.health()
 
