@@ -3,9 +3,7 @@ from __future__ import annotations
 import re
 from collections.abc import MutableMapping
 from dataclasses import dataclass
-from dataclasses import dataclass
-import re
-from typing import MutableMapping
+
 
 _TRACEPARENT = re.compile(r"^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$")
 _TRACESTATE_MAX = 512
