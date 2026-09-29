@@ -15,6 +15,7 @@ PUBLIC_OPERATIONS = frozenset(
         "approvals.request",
         "approvals.decide",
         "tools.execute",
+        "executions.get",
         "runs.events",
         "runs.evidence",
     }
