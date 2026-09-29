@@ -12,6 +12,12 @@ It is deliberately a **thin contract layer**, not a second agent runtime or auth
 
 The SDK is independent of the Platform repository and does not import Platform implementation packages.
 
+## Official Agent Developer Surface
+
+This repository is the official external developer surface for Tinlance Agent Platform. Agent authors should depend on this package and its versioned contracts rather than importing Platform implementation packages.
+
+The SDK exposes typed R10 contracts, lifecycle interpretation helpers, declarative capability metadata, approval workflow composition, governed execution/result handling, opaque evidence references, structured errors, explicit idempotency helpers, W3C trace-context propagation, and agent scaffolding. None of these helpers grants authority or reimplements Platform policy.
+
 ## v0.1 / Platform API 1.1
 
 SDK 0.1.0 targets the currently implemented Platform API 1.1 operation gateway.
@@ -25,6 +31,9 @@ SDK 0.1.0 targets the currently implemented Platform API 1.1 operation gateway.
 | `runs.create(task_id, agent_id, intent)` | `runs.create` |
 | `runs.cancel(run_id)` | `runs.cancel` |
 | `approvals.request(run_id, action, resource, reason)` | `approvals.request` |
+| `approvals.decide(approval_id, approved)` | `approvals.decide` |
+| `tools.execute(run_id, agent_id, invocation, ...)` | `tools.execute` |
+| `executions.get(execution_id)` | `executions.get` |
 | `runs.events(run_id)` | `runs.events` |
 | `runs.evidence(run_id)` | `runs.evidence` |
 
@@ -78,7 +87,7 @@ Consequential operations are:
 
 The SDK never automatically retries a consequential operation with a new request ID.
 
-Optional W3C `traceparent` can be supplied to the client and is propagated unchanged after strict validation.
+Optional W3C `traceparent`/`tracestate` can be supplied through `TraceContext` and are propagated without granting authority. The SDK follows W3C Trace Context validation rules and does not use baggage as an authorization channel.
 
 ### M0 transport hardening
 
@@ -164,7 +173,7 @@ The Agent Platform repository contains an internal `packages/sdk` domain/composi
 
 ## Contract
 
-The SDK v0.1 contract is documented in [docs/contracts/SDK-V0.1-CONTRACT.md](docs/contracts/SDK-V0.1-CONTRACT.md).
+The SDK v0.1 contract is documented in [docs/contracts/SDK-V0.1-CONTRACT.md](docs/contracts/SDK-V0.1-CONTRACT.md). R10 authority remains in the Platform's `docs/R10-GOVERNED-EXECUTION.md`.
 
 The server-side forensic baseline remains authoritative in the Tinlance Agent Platform repository. If the server API changes, the server contract and executable tests must change before the SDK expands its public surface.
 
@@ -188,7 +197,7 @@ Apache License 2.0. See [LICENSE](LICENSE).
 
 ## M1–M11 SDK surface
 
-The repository follows the canonical SDK sequence:
+The repository follows the SDK delivery sequence (distinct from the Platform's M0–M14 capability roadmap):
 
 ```text
 M0 Platform contract discovery
@@ -205,7 +214,7 @@ M10 Production developer experience
 M11 v1.0 readiness
 ```
 
-The complete acceptance contract is [docs/ROADMAP-M0-M11.md](docs/ROADMAP-M0-M11.md).
+The complete acceptance contract is [docs/ROADMAP-M0-M11.md](docs/ROADMAP-M0-M11.md). The release gate also requires reconciliation with the Platform R10 contract and executable conformance tests.
 
 ### Async client
 
