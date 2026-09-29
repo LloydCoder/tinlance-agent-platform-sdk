@@ -163,6 +163,7 @@ def test_contract_and_lifecycle_validation_reject_invalid_values() -> None:
         validate_approval_state,
         validate_execution_state,
     )
+
     with pytest.raises(ValueError):
         validate_approval_state("not-a-state")
     with pytest.raises(ValueError):
