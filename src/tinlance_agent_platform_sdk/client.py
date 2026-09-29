@@ -256,6 +256,7 @@ class AgentPlatform:
         traceparent: str | None = None,
         allow_insecure_http: bool = False,
         max_response_bytes: int = MAX_RESPONSE_BYTES,
+        user_agent: str = "tinlance-agent-platform-sdk/0.1.0",
     ) -> None:
         parsed_url = urlsplit(base_url)
         if parsed_url.scheme not in {"http", "https"} or not parsed_url.hostname:
@@ -276,7 +277,10 @@ class AgentPlatform:
             raise ValueError("timeout must be positive")
         if max_response_bytes <= 0:
             raise ValueError("max_response_bytes must be positive")
+        if not user_agent.strip():
+            raise ValueError("user_agent must be non-empty")
         self._max_response_bytes = max_response_bytes
+        self._user_agent = user_agent.strip()
         self._opener = urllib.request.build_opener(_NoRedirectHandler)
         self._timeout = timeout
         if api_version != API_VERSION:
@@ -319,6 +323,7 @@ class AgentPlatform:
         headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
+            "User-Agent": self._user_agent,
             "Authorization": f"Bearer {self._bearer_token}",
             "X-Tinlance-API-Version": self._api_version,
             "X-Request-ID": rid,
