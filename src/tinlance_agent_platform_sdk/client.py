@@ -37,6 +37,7 @@ from .models import (
 from .tools import ToolInvocation
 
 API_VERSION = "1.1"
+GOVERNED_EXECUTION_CONTRACT = "governed-execution.v1"
 MAX_REQUEST_BYTES = 1 * 1024 * 1024
 MAX_RESPONSE_BYTES = 8 * 1024 * 1024
 _TRACEPARENT = re.compile(r"^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$")
@@ -345,7 +346,7 @@ class _ToolsResource:
         if requested_timeout_seconds <= 0 or requested_tool_calls < 1:
             raise ValueError("execution limits must be positive")
         payload: dict[str, Any] = {
-            "contract_version": "governed-execution.v1",
+            "contract_version": GOVERNED_EXECUTION_CONTRACT,
             "run_id": _as_uuid(run_id, "run_id"),
             "agent_id": _as_uuid(agent_id, "agent_id"),
             "capability_id": _required_text(invocation.capability, "capability_id"),
