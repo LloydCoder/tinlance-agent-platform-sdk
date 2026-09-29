@@ -291,9 +291,7 @@ class _ApprovalsResource:
             "approved": approved,
         }
         if intent_fingerprint is not None:
-            payload["intent_fingerprint"] = _required_text(
-                intent_fingerprint, "intent_fingerprint"
-            )
+            payload["intent_fingerprint"] = _required_text(intent_fingerprint, "intent_fingerprint")
         return ApprovalDecision.from_payload(
             self._client._call(
                 "approvals.decide",
