@@ -13,6 +13,7 @@ from uuid import UUID, uuid4
 from .errors import (
     ApiVersionError,
     AuthenticationError,
+    ExecutionError,
     IdempotencyConflictError,
     InvalidRequestError,
     PermissionError,
@@ -21,9 +22,22 @@ from .errors import (
     TransportError,
     UnsupportedMediaTypeError,
 )
-from .models import Agent, ApprovalRef, Capability, Event, EvidenceRef, Health, Principal, Run
+from .models import (
+    Agent,
+    ApprovalDecision,
+    ApprovalRef,
+    Capability,
+    Event,
+    EvidenceRef,
+    Execution,
+    Health,
+    Principal,
+    Run,
+)
+from .tools import ToolInvocation
 
 API_VERSION = "1.1"
+GOVERNED_EXECUTION_CONTRACT = "governed-execution.v1"
 MAX_REQUEST_BYTES = 1 * 1024 * 1024
 MAX_RESPONSE_BYTES = 8 * 1024 * 1024
 _TRACEPARENT = re.compile(r"^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$")
@@ -81,6 +95,9 @@ _EXPECTED_SUCCESS_STATUS: dict[str, str] = {
     "runs.create": "accepted",
     "runs.cancel": "accepted",
     "approvals.request": "accepted",
+    "approvals.decide": "accepted",
+    "tools.execute": "accepted",
+    "executions.get": "ok",
     "runs.events": "ok",
     "runs.evidence": "ok",
 }
@@ -224,7 +241,10 @@ class _ApprovalsResource:
         resource: str,
         reason: str,
         *,
+        intent_fingerprint: str | None = None,
+        execution_intent: dict[str, Any] | None = None,
         request_id: str | None = None,
+        idempotency_key: str | None = None,
     ) -> ApprovalRef:
         return ApprovalRef.from_payload(
             self._client._call(
@@ -234,9 +254,125 @@ class _ApprovalsResource:
                     "action": _required_text(action, "action"),
                     "resource": _required_text(resource, "resource"),
                     "reason": _required_text(reason, "reason"),
+                    **(
+                        {
+                            "intent_fingerprint": _required_text(
+                                intent_fingerprint, "intent_fingerprint"
+                            )
+                        }
+                        if intent_fingerprint is not None
+                        else {}
+                    ),
+                    **(
+                        {"execution_intent": execution_intent}
+                        if execution_intent is not None
+                        else {}
+                    ),
                 },
                 request_id=request_id,
                 consequential=True,
+                idempotency_key=idempotency_key,
+            )
+        )
+
+    def decide(
+        self,
+        approval_id: UUID | str,
+        approved: bool,
+        *,
+        intent_fingerprint: str | None = None,
+        request_id: str | None = None,
+        idempotency_key: str | None = None,
+    ) -> ApprovalDecision:
+        if not isinstance(approved, bool):
+            raise ValueError("approved must be boolean")
+        payload: dict[str, Any] = {
+            "approval_id": _as_uuid(approval_id, "approval_id"),
+            "approved": approved,
+        }
+        if intent_fingerprint is not None:
+            payload["intent_fingerprint"] = _required_text(intent_fingerprint, "intent_fingerprint")
+        return ApprovalDecision.from_payload(
+            self._client._call(
+                "approvals.decide",
+                payload,
+                request_id=request_id,
+                consequential=True,
+                idempotency_key=idempotency_key,
+            )
+        )
+
+
+class _ExecutionsResource:
+    def __init__(self, client: AgentPlatform) -> None:
+        self._client = client
+
+    def get(self, execution_id: UUID | str, *, request_id: str | None = None) -> Execution:
+        return Execution.from_payload(
+            self._client._call(
+                "executions.get",
+                {"execution_id": _as_uuid(execution_id, "execution_id")},
+                request_id=request_id,
+                consequential=False,
+            )
+        )
+
+
+class _ToolsResource:
+    def __init__(self, client: AgentPlatform) -> None:
+        self._client = client
+
+    def execute(
+        self,
+        run_id: UUID | str,
+        agent_id: UUID | str,
+        invocation: ToolInvocation,
+        *,
+        capability_version: str = "1",
+        tool_version: str = "1",
+        requested_timeout_seconds: float = 30.0,
+        requested_tool_calls: int = 1,
+        risk: str = "low",
+        reversibility: str = "reversible",
+        data_class: str = "internal",
+        blast_radius: str = "single",
+        approval_id: UUID | str | None = None,
+        sandbox_required: bool = False,
+        evidence_required: bool = True,
+        request_id: str | None = None,
+        idempotency_key: str | None = None,
+    ) -> Execution:
+        if requested_timeout_seconds <= 0 or requested_tool_calls < 1:
+            raise ValueError("execution limits must be positive")
+        payload: dict[str, Any] = {
+            "contract_version": GOVERNED_EXECUTION_CONTRACT,
+            "run_id": _as_uuid(run_id, "run_id"),
+            "agent_id": _as_uuid(agent_id, "agent_id"),
+            "capability_id": _required_text(invocation.capability, "capability_id"),
+            "capability_version": _required_text(capability_version, "capability_version"),
+            "tool_name": _required_text(invocation.tool_name, "tool_name"),
+            "tool_version": _required_text(tool_version, "tool_version"),
+            "action": _required_text(invocation.action, "action"),
+            "resource": _required_text(invocation.resource, "resource"),
+            "input": invocation.arguments,
+            "requested_timeout_seconds": requested_timeout_seconds,
+            "requested_tool_calls": requested_tool_calls,
+            "risk": risk,
+            "reversibility": reversibility,
+            "data_class": data_class,
+            "blast_radius": blast_radius,
+            "sandbox_required": sandbox_required,
+            "evidence_required": evidence_required,
+        }
+        if approval_id is not None:
+            payload["approval_id"] = _as_uuid(approval_id, "approval_id")
+        return Execution.from_payload(
+            self._client._call(
+                "tools.execute",
+                payload,
+                request_id=request_id,
+                consequential=True,
+                idempotency_key=idempotency_key,
             )
         )
 
@@ -292,6 +428,8 @@ class AgentPlatform:
         self.capabilities = _CapabilitiesResource(self)
         self.runs = _RunsResource(self)
         self.approvals = _ApprovalsResource(self)
+        self.executions = _ExecutionsResource(self)
+        self.tools = _ToolsResource(self)
 
     def health(self, *, request_id: str | None = None) -> Health:
         return Health.from_payload(
@@ -305,6 +443,7 @@ class AgentPlatform:
         *,
         request_id: str | None,
         consequential: bool,
+        idempotency_key: str | None = None,
     ) -> dict[str, Any]:
         rid = _normalize_request_id(request_id or str(uuid4()))
         body = {
@@ -329,7 +468,7 @@ class AgentPlatform:
             "X-Request-ID": rid,
         }
         if consequential:
-            headers["Idempotency-Key"] = rid
+            headers["Idempotency-Key"] = _normalize_request_id(idempotency_key or rid)
         if self._traceparent is not None:
             headers["traceparent"] = self._traceparent
         request = urllib.request.Request(
@@ -482,6 +621,8 @@ class AgentPlatform:
         message = f"Platform request failed with HTTP {error.code}"
         if isinstance(code, str):
             message = f"{message}: {code}"
+        if error.code == 409 and code.upper() != "IDEMPOTENCY_CONFLICT":
+            raise ExecutionError(message, status_code=error.code, error_code=code) from error
         mapping: dict[int, type[PlatformError]] = {
             400: InvalidRequestError,
             401: AuthenticationError,

@@ -12,7 +12,19 @@ from uuid import UUID
 
 from .client import AgentPlatform
 from .config import ClientConfig
-from .models import Agent, ApprovalRef, Capability, Event, EvidenceRef, Health, Principal, Run
+from .models import (
+    Agent,
+    ApprovalDecision,
+    ApprovalRef,
+    Capability,
+    Event,
+    EvidenceRef,
+    Execution,
+    Health,
+    Principal,
+    Run,
+)
+from .tools import ToolInvocation
 
 
 class _AsyncPrincipal:
@@ -94,7 +106,10 @@ class _AsyncApprovals:
         resource: str,
         reason: str,
         *,
+        intent_fingerprint: str | None = None,
+        execution_intent: dict[str, Any] | None = None,
         request_id: str | None = None,
+        idempotency_key: str | None = None,
     ) -> ApprovalRef:
         return await asyncio.to_thread(
             self._client._sync.approvals.request,
@@ -102,7 +117,60 @@ class _AsyncApprovals:
             action,
             resource,
             reason,
+            intent_fingerprint=intent_fingerprint,
+            execution_intent=execution_intent,
             request_id=request_id,
+            idempotency_key=idempotency_key,
+        )
+
+    async def decide(
+        self,
+        approval_id: UUID | str,
+        approved: bool,
+        *,
+        intent_fingerprint: str | None = None,
+        request_id: str | None = None,
+        idempotency_key: str | None = None,
+    ) -> ApprovalDecision:
+        return await asyncio.to_thread(
+            self._client._sync.approvals.decide,
+            approval_id,
+            approved,
+            intent_fingerprint=intent_fingerprint,
+            request_id=request_id,
+            idempotency_key=idempotency_key,
+        )
+
+
+class _AsyncExecutions:
+    def __init__(self, client: AsyncAgentPlatform) -> None:
+        self._client = client
+
+    async def get(self, execution_id: UUID | str, *, request_id: str | None = None) -> Execution:
+        return await asyncio.to_thread(
+            self._client._sync.executions.get,
+            execution_id,
+            request_id=request_id,
+        )
+
+
+class _AsyncTools:
+    def __init__(self, client: AsyncAgentPlatform) -> None:
+        self._client = client
+
+    async def execute(
+        self,
+        run_id: UUID | str,
+        agent_id: UUID | str,
+        invocation: ToolInvocation,
+        **kwargs: Any,
+    ) -> Execution:
+        return await asyncio.to_thread(
+            self._client._sync.tools.execute,
+            run_id,
+            agent_id,
+            invocation,
+            **kwargs,
         )
 
 
@@ -119,6 +187,8 @@ class AsyncAgentPlatform:
         self.capabilities = _AsyncCapabilities(self)
         self.runs = _AsyncRuns(self)
         self.approvals = _AsyncApprovals(self)
+        self.executions = _AsyncExecutions(self)
+        self.tools = _AsyncTools(self)
 
     async def health(self, *, request_id: str | None = None) -> Health:
         return await asyncio.to_thread(self._sync.health, request_id=request_id)

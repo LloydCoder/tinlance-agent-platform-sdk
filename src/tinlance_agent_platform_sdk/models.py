@@ -188,3 +188,57 @@ APPROVAL_STATES = frozenset(
         "expired",
     }
 )
+
+
+@dataclass(frozen=True, slots=True)
+class ApprovalDecision:
+    approval_id: UUID
+    state: str
+
+    @classmethod
+    def from_payload(cls, payload: dict[str, Any]) -> ApprovalDecision:
+        value = payload.get("approval_id")
+        state = payload.get("state")
+        if not isinstance(value, str) or not isinstance(state, str) or not value or not state:
+            raise ValueError("Platform returned an invalid approval decision payload")
+        return cls(_uuid(value), state)
+
+
+@dataclass(frozen=True, slots=True)
+class Execution:
+    execution_id: UUID
+    state: str
+    output: str | None
+    evidence_ids: tuple[UUID, ...]
+    audit_event_ids: tuple[UUID, ...]
+    error_code: str | None
+    retryable: bool
+
+    @classmethod
+    def from_payload(cls, payload: dict[str, Any]) -> Execution:
+        execution_id = _text(payload, "execution_id")
+        state = _text(payload, "state")
+        output = payload.get("output")
+        if output is not None and not isinstance(output, str):
+            raise ValueError("Platform returned an invalid execution output")
+        evidence = payload.get("evidence_ids", [])
+        audit = payload.get("audit_event_ids", [])
+        retryable = payload.get("retryable", False)
+        error_code = payload.get("error_code")
+        if not isinstance(evidence, list) or not all(isinstance(item, str) for item in evidence):
+            raise ValueError("Platform returned invalid evidence identifiers")
+        if not isinstance(audit, list) or not all(isinstance(item, str) for item in audit):
+            raise ValueError("Platform returned invalid audit identifiers")
+        if not isinstance(retryable, bool):
+            raise ValueError("Platform returned invalid retryability")
+        if error_code is not None and not isinstance(error_code, str):
+            raise ValueError("Platform returned invalid execution error code")
+        return cls(
+            _uuid(execution_id),
+            state,
+            output,
+            tuple(_uuid(item) for item in evidence),
+            tuple(_uuid(item) for item in audit),
+            error_code,
+            retryable,
+        )
