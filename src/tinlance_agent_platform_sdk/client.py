@@ -293,6 +293,21 @@ class _ApprovalsResource:
         )
 
 
+class _ExecutionsResource:
+    def __init__(self, client: AgentPlatform) -> None:
+        self._client = client
+
+    def get(self, execution_id: UUID | str, *, request_id: str | None = None) -> Execution:
+        return Execution.from_payload(
+            self._client._call(
+                "executions.get",
+                {"execution_id": _as_uuid(execution_id, "execution_id")},
+                request_id=request_id,
+                consequential=False,
+            )
+        )
+
+
 class _ToolsResource:
     def __init__(self, client: AgentPlatform) -> None:
         self._client = client
@@ -403,6 +418,7 @@ class AgentPlatform:
         self.capabilities = _CapabilitiesResource(self)
         self.runs = _RunsResource(self)
         self.approvals = _ApprovalsResource(self)
+        self.executions = _ExecutionsResource(self)
         self.tools = _ToolsResource(self)
 
     def health(self, *, request_id: str | None = None) -> Health:
