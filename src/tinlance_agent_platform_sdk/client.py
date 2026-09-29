@@ -251,9 +251,11 @@ class _ApprovalsResource:
                     "resource": _required_text(resource, "resource"),
                     "reason": _required_text(reason, "reason"),
                     **(
-                        {"intent_fingerprint": _required_text(
-                            intent_fingerprint, "intent_fingerprint"
-                        )}
+                        {
+                            "intent_fingerprint": _required_text(
+                                intent_fingerprint, "intent_fingerprint"
+                            )
+                        }
                         if intent_fingerprint is not None
                         else {}
                     ),
