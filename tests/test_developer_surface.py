@@ -91,3 +91,92 @@ def test_structured_platform_error_contains_no_secret() -> None:
 def test_agent_scaffold_and_approval_workflow_are_composition_only() -> None:
     assert AgentScaffold
     assert ApprovalWorkflow
+
+
+class _FakeRuns:
+    def create(self, task_id, agent_id, intent, *, request_id=None):
+        return (task_id, agent_id, intent, request_id)
+
+
+class _FakeApprovals:
+    def request(self, *args, **kwargs):
+        return ("request", args, kwargs)
+
+    def decide(self, *args, **kwargs):
+        return ("decide", args, kwargs)
+
+
+class _FakeClient:
+    def __init__(self):
+        self.runs = _FakeRuns()
+        self.approvals = _FakeApprovals()
+
+
+def test_agent_scaffold_delegates_run_creation() -> None:
+    client = _FakeClient()
+    scaffold = AgentScaffold(
+        client,
+        agent_id=UUID("11111111-1111-1111-1111-111111111111"),
+        task_id=UUID("22222222-2222-2222-2222-222222222222"),
+        spec=AgentSpec("Research", "1.0.0", "Governed research agent"),
+    )
+    assert scaffold.start("inspect", request_id="req-1")[2:] == ("inspect", "req-1")
+    with pytest.raises(ValueError):
+        scaffold.start("")
+
+
+def test_approval_workflow_delegates_without_local_authority() -> None:
+    workflow = ApprovalWorkflow(_FakeClient())
+    request = ApprovalRequest(
+        UUID("11111111-1111-1111-1111-111111111111"),
+        "read",
+        "repo:example",
+        "review",
+    )
+    assert workflow.request(request)[0] == "request"
+    assert workflow.decide(UUID("33333333-3333-3333-3333-333333333333"), True)[0] == "decide"
+
+
+def test_trace_context_header_parsing_and_validation() -> None:
+    context = TraceContext.from_headers(
+        {"TraceParent": "00-11111111111111111111111111111111-2222222222222222-01"}
+    )
+    assert context is not None
+    assert context.tracestate is None
+    with pytest.raises(ValueError):
+        TraceContext(
+            "00-00000000000000000000000000000000-2222222222222222-01"
+        )
+    with pytest.raises(ValueError):
+        TraceContext(
+            "00-11111111111111111111111111111111-2222222222222222-01",
+            "bad\nstate",
+        )
+
+
+def test_contract_and_lifecycle_validation_reject_invalid_values() -> None:
+    with pytest.raises(ValueError):
+        CapabilityDeclaration("", "1", "x")
+    with pytest.raises(ValueError):
+        IdempotencyKey("")
+    with pytest.raises(ValueError):
+        is_execution_terminal("not-a-state")
+    from tinlance_agent_platform_sdk.lifecycle import validate_approval_state, validate_execution_state
+    with pytest.raises(ValueError):
+        validate_approval_state("not-a-state")
+    with pytest.raises(ValueError):
+        validate_execution_state("not-a-state")
+
+
+def test_execution_result_retry_policy_covers_known_retryable_state() -> None:
+    result = ExecutionResult(
+        UUID("11111111-1111-1111-1111-111111111111"),
+        "failed",
+        "temporary",
+        (),
+        (),
+        "temporary_failure",
+        True,
+    )
+    assert result.terminal
+    assert result.safe_to_retry
