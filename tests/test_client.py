@@ -518,12 +518,16 @@ def test_operation_specific_success_status_is_verified(fake: FakePlatform, opera
         200,
         {
             "status": "accepted" if operation == "health" else "ok",
-            "payload": {"ready": True} if operation == "health" else {
+            "payload": (
+                {"ready": True}
+                if operation == "health"
+                else {
                 "run_id": str(RUN_ID),
                 "task_id": str(TASK_ID),
                 "state": "running",
                 "agent_id": str(AGENT_ID),
-            },
+                },
+            ),
         },
     )
     with pytest.raises(PlatformError) as exc_info:
