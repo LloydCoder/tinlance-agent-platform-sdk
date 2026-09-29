@@ -168,18 +168,22 @@ class EvidenceRef:
         return cls(_uuid(value))
 
 
-RUN_STATES = frozenset({
-    "created",
-    "running",
-    "waiting_approval",
-    "succeeded",
-    "failed",
-    "cancelled",
-})
+RUN_STATES = frozenset(
+    {
+        "created",
+        "running",
+        "waiting_approval",
+        "succeeded",
+        "failed",
+        "cancelled",
+    }
+)
 
-APPROVAL_STATES = frozenset({
-    "pending",
-    "approved",
-    "rejected",
-    "expired",
-})
+APPROVAL_STATES = frozenset(
+    {
+        "pending",
+        "approved",
+        "rejected",
+        "expired",
+    }
+)
