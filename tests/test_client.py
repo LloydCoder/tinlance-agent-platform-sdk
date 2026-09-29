@@ -75,7 +75,10 @@ class FakePlatform:
                 "agent_id": str(AGENT_ID), "name": "security-agent", "version": "1.0.0"
             }]}}
         if operation == "capabilities.list":
-            return 200, {"status": "ok", "payload": {"capabilities": [{"capability_id": "repository.read"}]}}
+            return 200, {
+                "status": "ok",
+                "payload": {"capabilities": [{"capability_id": "repository.read"}]},
+            }
         if operation == "runs.create":
             return 200, {"status": "accepted", "payload": {
                 "run_id": str(RUN_ID), "task_id": str(TASK_ID), "state": "running",
@@ -97,7 +100,10 @@ class FakePlatform:
                 "platform_run_id": str(RUN_ID), "payload": {"task_id": str(TASK_ID)}
             }]}}
         if operation == "runs.evidence":
-            return 200, {"status": "ok", "payload": {"evidence": [{"evidence_id": str(EVIDENCE_ID)}]}}
+            return 200, {
+                "status": "ok",
+                "payload": {"evidence": [{"evidence_id": str(EVIDENCE_ID)}]},
+            }
         return 400, {"error": "invalid_request"}
 
     def close(self) -> None:
@@ -175,7 +181,9 @@ def test_traceparent_is_propagated(fake: FakePlatform) -> None:
         traceparent="00-11111111111111111111111111111111-2222222222222222-01",
     )
     sdk.health()
-    assert fake.headers[-1]["traceparent"] == "00-11111111111111111111111111111111-2222222222222222-01"
+    assert fake.headers[-1]["traceparent"] == (
+        "00-11111111111111111111111111111111-2222222222222222-01"
+    )
 
 
 @pytest.mark.parametrize(
@@ -198,8 +206,8 @@ def test_error_mapping(
     with pytest.raises(error_type) as exc_info:
         make_client(fake).health()
     error = exc_info.value
-    assert getattr(error, "status_code") == status
-    assert getattr(error, "error_code") == error_code
+    assert error.status_code == status
+    assert error.error_code == error_code
     assert TOKEN not in str(error)
 
 
@@ -231,13 +239,33 @@ def test_request_id_validation() -> None:
 
 def test_client_configuration_validation() -> None:
     with pytest.raises(ValueError):
-        AgentPlatform(base_url="not-a-url", bearer_token=TOKEN, tenant_id=TENANT, subject_id=SUBJECT)
+        AgentPlatform(
+            base_url="not-a-url", bearer_token=TOKEN, tenant_id=TENANT, subject_id=SUBJECT
+        )
     with pytest.raises(ValueError):
-        AgentPlatform(base_url="https://example.com", bearer_token=TOKEN, tenant_id=TENANT, subject_id=SUBJECT, timeout=0)
+        AgentPlatform(
+            base_url="https://example.com",
+            bearer_token=TOKEN,
+            tenant_id=TENANT,
+            subject_id=SUBJECT,
+            timeout=0,
+        )
     with pytest.raises(ValueError):
-        AgentPlatform(base_url="https://example.com", bearer_token=TOKEN, tenant_id=TENANT, subject_id=SUBJECT, traceparent="invalid")
+        AgentPlatform(
+            base_url="https://example.com",
+            bearer_token=TOKEN,
+            tenant_id=TENANT,
+            subject_id=SUBJECT,
+            traceparent="invalid",
+        )
     with pytest.raises(ValueError):
-        AgentPlatform(base_url="https://example.com", bearer_token=TOKEN, tenant_id=TENANT, subject_id=SUBJECT, api_version="9.9")
+        AgentPlatform(
+            base_url="https://example.com",
+            bearer_token=TOKEN,
+            tenant_id=TENANT,
+            subject_id=SUBJECT,
+            api_version="9.9",
+        )
 
 
 def test_client_input_validation(fake: FakePlatform) -> None:
