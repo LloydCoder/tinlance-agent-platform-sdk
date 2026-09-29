@@ -29,6 +29,7 @@ RUN_ID = uuid4()
 APPROVAL_ID = uuid4()
 EVENT_ID = uuid4()
 EVIDENCE_ID = uuid4()
+EXECUTION_ID = uuid4()
 
 
 class FakePlatform:
@@ -142,6 +143,37 @@ class FakePlatform:
             return 200, {
                 "status": "ok",
                 "payload": {"evidence": [{"evidence_id": str(EVIDENCE_ID)}]},
+            }
+        if operation == "approvals.decide":
+            return 200, {
+                "status": "accepted",
+                "payload": {"approval_id": str(APPROVAL_ID), "state": "approved"},
+            }
+        if operation == "tools.execute":
+            return 200, {
+                "status": "accepted",
+                "payload": {
+                    "execution_id": str(EXECUTION_ID),
+                    "state": "completed",
+                    "output": "ok",
+                    "evidence_ids": [str(EVIDENCE_ID)],
+                    "audit_event_ids": [str(EVENT_ID)],
+                    "error_code": None,
+                    "retryable": False,
+                },
+            }
+        if operation == "executions.get":
+            return 200, {
+                "status": "ok",
+                "payload": {
+                    "execution_id": str(EXECUTION_ID),
+                    "state": "completed",
+                    "output": "ok",
+                    "evidence_ids": [str(EVIDENCE_ID)],
+                    "audit_event_ids": [str(EVENT_ID)],
+                    "error_code": None,
+                    "retryable": False,
+                },
             }
         return 400, {"error": "invalid_request"}
 
@@ -585,3 +617,34 @@ def test_oversized_http_error_is_rejected(fake: FakePlatform) -> None:
     with pytest.raises(RequestTooLargeError) as exc_info:
         sdk.health()
     assert exc_info.value.error_code == "response_too_large"
+
+
+def test_r10_execution_and_approval_contract(fake: FakePlatform) -> None:
+    from tinlance_agent_platform_sdk import ToolInvocation
+
+    sdk = make_client(fake)
+    key = str(uuid4())
+    decision = sdk.approvals.decide(
+        APPROVAL_ID, True, request_id=str(uuid4()), idempotency_key=key
+    )
+    assert decision.approval_id == APPROVAL_ID
+    invocation = ToolInvocation(
+        "reference.echo", "repository.read", "read", "repo:example", {"path": "README.md"}
+    )
+    execution = sdk.tools.execute(
+        RUN_ID,
+        AGENT_ID,
+        invocation,
+        capability_version="1",
+        tool_version="1",
+        risk="high",
+        approval_id=APPROVAL_ID,
+        request_id=str(uuid4()),
+        idempotency_key=key + "-exec",
+    )
+    assert execution.execution_id == EXECUTION_ID
+    assert sdk.executions.get(EXECUTION_ID).state == "completed"
+    assert fake.requests[-3]["operation"] == "approvals.decide"
+    assert fake.headers[-3]["idempotency-key"] == key
+    assert fake.requests[-2]["operation"] == "tools.execute"
+    assert fake.headers[-2]["idempotency-key"] == key + "-exec"
