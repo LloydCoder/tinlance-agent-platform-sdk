@@ -70,9 +70,7 @@ class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
         headers: Any,
         newurl: str,
     ) -> None:
-        raise TransportError(
-            "redirects are disabled for authenticated Platform requests"
-        )
+        raise TransportError("redirects are disabled for authenticated Platform requests")
 
 
 _EXPECTED_SUCCESS_STATUS: dict[str, str] = {
