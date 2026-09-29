@@ -107,6 +107,7 @@ class _AsyncApprovals:
         reason: str,
         *,
         intent_fingerprint: str | None = None,
+        execution_intent: dict[str, Any] | None = None,
         request_id: str | None = None,
         idempotency_key: str | None = None,
     ) -> ApprovalRef:
@@ -117,6 +118,7 @@ class _AsyncApprovals:
             resource,
             reason,
             intent_fingerprint=intent_fingerprint,
+            execution_intent=execution_intent,
             request_id=request_id,
             idempotency_key=idempotency_key,
         )
