@@ -121,8 +121,6 @@ class _AsyncApprovals:
             idempotency_key=idempotency_key,
         )
 
-
-
     async def decide(
         self,
         approval_id: UUID | str,
