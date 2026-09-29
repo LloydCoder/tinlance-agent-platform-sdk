@@ -37,6 +37,8 @@ class FakePlatform:
         self.headers: list[dict[str, str]] = []
         self.responses: dict[str, tuple[int, dict[str, object]]] = {}
         self.raw_responses: dict[str, tuple[int, bytes]] = {}
+        self.response_versions: dict[str, str] = {}
+        self.response_content_types: dict[str, str] = {}
         self.server = self._server()
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
@@ -59,8 +61,12 @@ class FakePlatform:
                     status, response = parent.responses.get(operation, parent._default(operation))
                     raw = json.dumps(response).encode()
                 self.send_response(status)
-                self.send_header("Content-Type", "application/json")
-                self.send_header("X-Tinlance-API-Version", "1.1")
+                self.send_header(
+                    "Content-Type", parent.response_content_types.get(operation, "application/json")
+                )
+                self.send_header(
+                    "X-Tinlance-API-Version", parent.response_versions.get(operation, "1.1")
+                )
                 self.send_header("Content-Length", str(len(raw)))
                 self.end_headers()
                 self.wfile.write(raw)
@@ -157,6 +163,7 @@ def make_client(fake: FakePlatform) -> AgentPlatform:
         bearer_token=TOKEN,
         tenant_id=TENANT,
         subject_id=SUBJECT,
+        allow_insecure_http=True,
     )
 
 
@@ -272,6 +279,25 @@ def test_request_id_validation() -> None:
         sdk.health(request_id="contains\nnewline")
 
 
+def test_https_is_required_by_default() -> None:
+    with pytest.raises(ValueError):
+        AgentPlatform(
+            base_url="http://example.com",
+            bearer_token=TOKEN,
+            tenant_id=TENANT,
+            subject_id=SUBJECT,
+        )
+
+    client = AgentPlatform(
+        base_url="http://example.com",
+        bearer_token=TOKEN,
+        tenant_id=TENANT,
+        subject_id=SUBJECT,
+        allow_insecure_http=True,
+    )
+    assert client is not None
+
+
 def test_client_configuration_validation() -> None:
     with pytest.raises(ValueError):
         AgentPlatform(
@@ -300,6 +326,20 @@ def test_client_configuration_validation() -> None:
             tenant_id=TENANT,
             subject_id=SUBJECT,
             api_version="9.9",
+        )
+    with pytest.raises(ValueError):
+        AgentPlatform(
+            base_url="https://user:pass@example.com",
+            bearer_token=TOKEN,
+            tenant_id=TENANT,
+            subject_id=SUBJECT,
+        )
+    with pytest.raises(ValueError):
+        AgentPlatform(
+            base_url="https://example.com?token=secret",
+            bearer_token=TOKEN,
+            tenant_id=TENANT,
+            subject_id=SUBJECT,
         )
 
 
@@ -412,6 +452,7 @@ def test_transport_failure_is_typed() -> None:
         bearer_token=TOKEN,
         tenant_id=TENANT,
         subject_id=SUBJECT,
+        allow_insecure_http=True,
         timeout=0.1,
     )
     with pytest.raises(TransportError):
@@ -453,3 +494,60 @@ def test_model_invalid_payloads_are_rejected(fake: FakePlatform) -> None:
     )
     with pytest.raises(ValueError):
         make_client(fake).runs.create(TASK_ID, AGENT_ID, "intent")
+
+
+def test_response_api_version_is_verified(fake: FakePlatform) -> None:
+    fake.response_versions["health"] = "1.0"
+    with pytest.raises(ApiVersionError) as exc_info:
+        make_client(fake).health()
+    assert exc_info.value.error_code == "api_version_mismatch"
+
+
+def test_response_content_type_is_verified(fake: FakePlatform) -> None:
+    fake.response_content_types["health"] = "text/html"
+    with pytest.raises(UnsupportedMediaTypeError) as exc_info:
+        make_client(fake).health()
+    assert exc_info.value.error_code == "invalid_response_content_type"
+
+
+@pytest.mark.parametrize("operation", ["health", "runs.create"])
+def test_operation_specific_success_status_is_verified(fake: FakePlatform, operation: str) -> None:
+    fake.responses[operation] = (
+        200,
+        {
+            "status": "accepted" if operation == "health" else "ok",
+            "payload": {"ready": True} if operation == "health" else {
+                "run_id": str(RUN_ID),
+                "task_id": str(TASK_ID),
+                "state": "running",
+                "agent_id": str(AGENT_ID),
+            },
+        },
+    )
+    with pytest.raises(PlatformError) as exc_info:
+        if operation == "health":
+            make_client(fake).health()
+        else:
+            make_client(fake).runs.create(TASK_ID, AGENT_ID, "intent")
+    assert exc_info.value.error_code == "invalid_response"
+
+
+def test_oversized_response_is_rejected(fake: FakePlatform) -> None:
+    sdk = AgentPlatform(
+        base_url=f"http://127.0.0.1:{fake.server.server_address[1]}",
+        bearer_token=TOKEN,
+        tenant_id=TENANT,
+        subject_id=SUBJECT,
+        allow_insecure_http=True,
+        max_response_bytes=32,
+    )
+    fake.raw_responses["health"] = (200, b'{"status":"ok","payload":{"ready":true}}')
+    with pytest.raises(RequestTooLargeError) as exc_info:
+        sdk.health()
+    assert exc_info.value.error_code == "response_too_large"
+
+
+def test_redirects_are_disabled(fake: FakePlatform) -> None:
+    fake.responses["health"] = (302, {"location": "http://127.0.0.1:9/"})
+    with pytest.raises(TransportError, match="redirects are disabled"):
+        make_client(fake).health()
