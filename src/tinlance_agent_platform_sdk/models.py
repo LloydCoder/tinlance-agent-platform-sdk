@@ -205,7 +205,7 @@ class ApprovalDecision:
         state = payload.get("state")
         if not isinstance(value, str) or not isinstance(state, str) or not value or not state:
             raise ValueError("Platform returned an invalid approval decision payload")
-        return cls(_uuid(value), state)
+        return cls(_uuid(value), validate_approval_state(state))
 
 
 @dataclass(frozen=True, slots=True)
