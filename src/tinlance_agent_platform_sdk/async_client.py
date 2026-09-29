@@ -108,9 +108,10 @@ class AsyncAgentPlatform:
     """Async facade preserving the exact Platform v1.1 contract."""
 
     def __init__(self, config: ClientConfig | None = None, **kwargs: Any) -> None:
-        self._sync = AgentPlatform(
-            **(config.as_client_kwargs() if config is not None else kwargs)
-        )
+        if config is not None:
+            self._sync = AgentPlatform(**config.as_client_kwargs())  # type: ignore[arg-type]
+        else:
+            self._sync = AgentPlatform(**kwargs)
         self.principal = _AsyncPrincipal(self)
         self.agents = _AsyncAgents(self)
         self.capabilities = _AsyncCapabilities(self)
