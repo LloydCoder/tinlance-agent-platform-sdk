@@ -12,11 +12,10 @@ license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.12,<3.15"
 authors = [{ name = "Tinlance Limited" }]
 keywords = ["tinlance", "agent-platform", "ai-agents", "agent-sdk", "agentic-ai", "ai-security"]
-urls = {
-  Homepage = "https://github.com/LloydCoder/tinlance-agent-platform-sdk",
-  Repository = "https://github.com/LloydCoder/tinlance-agent-platform-sdk",
-  Issues = "https://github.com/LloydCoder/tinlance-agent-platform-sdk/issues",
-}
+[project.urls]
+Homepage = "https://github.com/LloydCoder/tinlance-agent-platform-sdk"
+Repository = "https://github.com/LloydCoder/tinlance-agent-platform-sdk"
+Issues = "https://github.com/LloydCoder/tinlance-agent-platform-sdk/issues"
 
 classifiers = [
   "Development Status :: 3 - Alpha",
