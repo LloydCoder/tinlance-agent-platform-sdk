@@ -6,9 +6,9 @@ Only the Platform can enforce idempotency at the authority boundary.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from hashlib import sha256
-import json
 
 
 @dataclass(frozen=True, slots=True)
