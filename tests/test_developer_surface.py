@@ -144,9 +144,7 @@ def test_trace_context_header_parsing_and_validation() -> None:
     assert context is not None
     assert context.tracestate is None
     with pytest.raises(ValueError):
-        TraceContext(
-            "00-00000000000000000000000000000000-2222222222222222-01"
-        )
+        TraceContext("00-00000000000000000000000000000000-2222222222222222-01")
     with pytest.raises(ValueError):
         TraceContext(
             "00-11111111111111111111111111111111-2222222222222222-01",
