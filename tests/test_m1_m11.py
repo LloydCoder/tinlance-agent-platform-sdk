@@ -79,7 +79,7 @@ def test_async_facade_reuses_sync_client() -> None:
         allow_insecure_http=True,
     )
 
-    async def fake_health(*, request_id: str | None = None):
+    def fake_health(*, request_id: str | None = None):
         return type("HealthValue", (), {"ready": True})()
 
     client._sync.health = fake_health  # type: ignore[method-assign]
@@ -124,3 +124,30 @@ def test_research_agent_delegates_to_platform(monkeypatch: pytest.MonkeyPatch) -
         )
     )
     assert result.run.state == "running"
+
+
+def test_client_config_rejects_unsafe_urls_and_invalid_limits() -> None:
+    common = {
+        "bearer_token": "token",
+        "tenant_id": "tenant",
+        "subject_id": "subject",
+    }
+    with pytest.raises(ValueError):
+        ClientConfig(base_url="https://user:pass@example.com", **common)
+    with pytest.raises(ValueError):
+        ClientConfig(base_url="https://example.com?secret=x", **common)
+    with pytest.raises(ValueError):
+        ClientConfig(
+            base_url="https://example.com",
+            max_response_bytes=0,
+            **common,
+        )
+    with pytest.raises(ValueError):
+        ClientConfig(base_url="https://example.com", timeout=0, **common)
+
+
+def test_compatibility_matrix() -> None:
+    from tinlance_agent_platform_sdk.compat import supports_platform_api
+
+    assert supports_platform_api("1.1") is True
+    assert supports_platform_api("9.9") is False
