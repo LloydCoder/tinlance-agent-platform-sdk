@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from .lifecycle import validate_approval_state, validate_execution_state
+from .lifecycle import validate_execution_state
 
 
 def _text(payload: dict[str, Any], key: str) -> str:
