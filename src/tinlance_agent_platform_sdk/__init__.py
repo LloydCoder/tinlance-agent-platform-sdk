@@ -1,5 +1,7 @@
 """Public client SDK for the Tinlance Agent Platform API v1.1."""
 
+from .agent import AgentScaffold, AgentSpec
+from .approval import ApprovalWorkflow
 from .async_client import AsyncAgentPlatform
 from .client import AgentPlatform
 from .compat import (
@@ -9,6 +11,16 @@ from .compat import (
     SUPPORTED_PLATFORM_API_VERSIONS,
 )
 from .config import ClientConfig
+from .context import TraceContext
+from .contracts import (
+    GOVERNED_EXECUTION_CONTRACT,
+    ApprovalRequest,
+    CapabilityDeclaration,
+    EvidenceReference,
+    ExecutionResult,
+    StructuredError,
+    canonical_intent_fingerprint,
+)
 from .errors import (
     ApiVersionError,
     AuthenticationError,
@@ -22,6 +34,8 @@ from .errors import (
     TransportError,
     UnsupportedMediaTypeError,
 )
+from .idempotency import IdempotencyKey
+from .lifecycle import is_approval_terminal, is_execution_terminal, is_run_terminal
 from .models import (
     Agent,
     ApprovalDecision,
@@ -40,8 +54,23 @@ from .tools import ToolContractRegistry, ToolDescriptor, ToolInvocation, ToolRes
 __all__ = [
     "AgentPlatform",
     "AsyncAgentPlatform",
+    "AgentScaffold",
+    "AgentSpec",
+    "ApprovalWorkflow",
     "Agent",
     "ClientConfig",
+    "TraceContext",
+    "ApprovalRequest",
+    "CapabilityDeclaration",
+    "ExecutionResult",
+    "EvidenceReference",
+    "StructuredError",
+    "GOVERNED_EXECUTION_CONTRACT",
+    "canonical_intent_fingerprint",
+    "IdempotencyKey",
+    "is_approval_terminal",
+    "is_execution_terminal",
+    "is_run_terminal",
     "DEFERRED_OPERATIONS",
     "ApiVersionError",
     "ApprovalDecision",

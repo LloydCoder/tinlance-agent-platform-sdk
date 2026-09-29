@@ -7,6 +7,8 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
+from .lifecycle import validate_approval_state, validate_execution_state
+
 
 def _text(payload: dict[str, Any], key: str) -> str:
     value = payload.get(key)
@@ -186,6 +188,8 @@ APPROVAL_STATES = frozenset(
         "approved",
         "rejected",
         "expired",
+        "cancelled",
+        "consumed",
     }
 )
 
@@ -201,7 +205,7 @@ class ApprovalDecision:
         state = payload.get("state")
         if not isinstance(value, str) or not isinstance(state, str) or not value or not state:
             raise ValueError("Platform returned an invalid approval decision payload")
-        return cls(_uuid(value), state)
+        return cls(_uuid(value), validate_approval_state(state))
 
 
 @dataclass(frozen=True, slots=True)
@@ -235,7 +239,7 @@ class Execution:
             raise ValueError("Platform returned invalid execution error code")
         return cls(
             _uuid(execution_id),
-            state,
+            validate_execution_state(state),
             output,
             tuple(_uuid(item) for item in evidence),
             tuple(_uuid(item) for item in audit),
