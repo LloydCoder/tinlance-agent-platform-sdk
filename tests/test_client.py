@@ -39,6 +39,7 @@ class FakePlatform:
         self.raw_responses: dict[str, tuple[int, bytes]] = {}
         self.response_versions: dict[str, str] = {}
         self.response_content_types: dict[str, str] = {}
+        self.redirect_locations: dict[str, str] = {}
         self.server = self._server()
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
@@ -549,6 +550,7 @@ def test_oversized_response_is_rejected(fake: FakePlatform) -> None:
 
 
 def test_redirects_are_disabled(fake: FakePlatform) -> None:
-    fake.responses["health"] = (302, {"location": "http://127.0.0.1:9/"})
+    fake.responses["health"] = (302, {"error": "redirect"})
+    fake.redirect_locations["health"] = "http://127.0.0.1:9/"
     with pytest.raises(TransportError, match="redirects are disabled"):
         make_client(fake).health()
