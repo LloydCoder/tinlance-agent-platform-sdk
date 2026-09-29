@@ -80,7 +80,9 @@ class _AgentsResource:
                 "Platform returned an invalid agents payload", error_code="invalid_response"
             )
         if not all(isinstance(item, dict) for item in items):
-            raise PlatformError("Platform returned an invalid agents payload", error_code="invalid_response")
+            raise PlatformError(
+                "Platform returned an invalid agents payload", error_code="invalid_response"
+            )
         return tuple(Agent.from_payload(item) for item in items)
 
 
@@ -157,7 +159,9 @@ class _RunsResource:
                 "Platform returned an invalid events payload", error_code="invalid_response"
             )
         if not all(isinstance(item, dict) for item in items):
-            raise PlatformError("Platform returned an invalid events payload", error_code="invalid_response")
+            raise PlatformError(
+                "Platform returned an invalid events payload", error_code="invalid_response"
+            )
         return tuple(Event.from_payload(item) for item in items)
 
     def evidence(
