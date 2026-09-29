@@ -23,11 +23,6 @@ classifiers = [
   "Typing :: Typed",
 ]
 
-[project.urls]
-Homepage = "https://github.com/LloydCoder/tinlance-agent-platform-sdk"
-Repository = "https://github.com/LloydCoder/tinlance-agent-platform-sdk"
-Issues = "https://github.com/LloydCoder/tinlance-agent-platform-sdk/issues"
-
 dependencies = []
 
 [project.optional-dependencies]
@@ -41,6 +36,11 @@ security = [
   "pip-audit>=2.9,<3",
   "cyclonedx-bom>=7,<8",
 ]
+
+[project.urls]
+Homepage = "https://github.com/LloydCoder/tinlance-agent-platform-sdk"
+Repository = "https://github.com/LloydCoder/tinlance-agent-platform-sdk"
+Issues = "https://github.com/LloydCoder/tinlance-agent-platform-sdk/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/tinlance_agent_platform_sdk"]
