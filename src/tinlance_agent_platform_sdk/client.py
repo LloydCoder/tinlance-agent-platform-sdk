@@ -6,8 +6,8 @@ import json
 import re
 import urllib.error
 import urllib.request
-from urllib.parse import urlsplit
 from typing import Any, NoReturn
+from urllib.parse import urlsplit
 from uuid import UUID, uuid4
 
 from .errors import (
@@ -425,7 +425,9 @@ class AgentPlatform:
     @staticmethod
     def _raise_http_error(error: urllib.error.HTTPError, maximum: int) -> NoReturn:
         if error.code in {301, 302, 303, 307, 308}:
-            raise TransportError("redirects are disabled for authenticated Platform requests") from error
+            raise TransportError(
+                "redirects are disabled for authenticated Platform requests"
+            ) from error
         content_type = error.headers.get("Content-Type", "")
         media_type = content_type.split(";", 1)[0].strip().lower()
         if media_type != "application/json":
