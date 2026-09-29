@@ -7,6 +7,8 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
+from .lifecycle import validate_approval_state, validate_execution_state
+
 
 def _text(payload: dict[str, Any], key: str) -> str:
     value = payload.get(key)
@@ -235,7 +237,7 @@ class Execution:
             raise ValueError("Platform returned invalid execution error code")
         return cls(
             _uuid(execution_id),
-            state,
+            validate_execution_state(state),
             output,
             tuple(_uuid(item) for item in evidence),
             tuple(_uuid(item) for item in audit),
