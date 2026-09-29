@@ -6,7 +6,7 @@ import json
 import re
 import urllib.error
 import urllib.request
-from typing import Any
+from typing import Any, NoReturn
 from uuid import UUID, uuid4
 
 from .errors import (
@@ -17,7 +17,6 @@ from .errors import (
     PermissionError,
     PlatformError,
     RequestTooLargeError,
-    SdkError,
     TransportError,
     UnsupportedMediaTypeError,
 )
@@ -78,7 +77,9 @@ class _AgentsResource:
         items = payload.get("agents")
         if not isinstance(items, list):
             raise PlatformError("Platform returned an invalid agents payload", error_code="invalid_response")
-        return tuple(Agent.from_payload(item) for item in items if isinstance(item, dict))
+        if not all(isinstance(item, dict) for item in items):
+            raise PlatformError("Platform returned an invalid agents payload", error_code="invalid_response")
+        return tuple(Agent.from_payload(item) for item in items)
 
 
 class _CapabilitiesResource:
@@ -97,7 +98,9 @@ class _CapabilitiesResource:
             raise PlatformError(
                 "Platform returned an invalid capabilities payload", error_code="invalid_response"
             )
-        return tuple(Capability.from_payload(item) for item in items if isinstance(item, dict))
+        if not all(isinstance(item, dict) for item in items):
+            raise PlatformError("Platform returned an invalid capabilities payload", error_code="invalid_response")
+        return tuple(Capability.from_payload(item) for item in items)
 
 
 class _RunsResource:
@@ -145,7 +148,9 @@ class _RunsResource:
         items = payload.get("events")
         if not isinstance(items, list):
             raise PlatformError("Platform returned an invalid events payload", error_code="invalid_response")
-        return tuple(Event.from_payload(item) for item in items if isinstance(item, dict))
+        if not all(isinstance(item, dict) for item in items):
+            raise PlatformError("Platform returned an invalid events payload", error_code="invalid_response")
+        return tuple(Event.from_payload(item) for item in items)
 
     def evidence(
         self, run_id: UUID | str, *, request_id: str | None = None
@@ -161,7 +166,9 @@ class _RunsResource:
             raise PlatformError(
                 "Platform returned an invalid evidence payload", error_code="invalid_response"
             )
-        return tuple(EvidenceRef.from_payload(item) for item in items if isinstance(item, dict))
+        if not all(isinstance(item, dict) for item in items):
+            raise PlatformError("Platform returned an invalid evidence payload", error_code="invalid_response")
+        return tuple(EvidenceRef.from_payload(item) for item in items)
 
 
 class _ApprovalsResource:
@@ -304,7 +311,7 @@ class AgentPlatform:
             raise PlatformError("Platform returned invalid JSON", error_code="invalid_response") from exc
 
     @staticmethod
-    def _raise_http_error(error: urllib.error.HTTPError) -> None:
+    def _raise_http_error(error: urllib.error.HTTPError) -> NoReturn:
         try:
             body = json.loads(error.read().decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError):
