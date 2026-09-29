@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
@@ -20,13 +22,31 @@ jobs:
         with:
           python-version: "3.14"
       - name: Install build tooling
-        run: python -m pip install --upgrade pip build
+        run: python -m pip install --upgrade pip build twine
       - name: Build distributions
         run: python -m build
       - name: Validate distributions
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
         run: |
           test -n "$(find dist -maxdepth 1 -type f -name '*.whl' -print -quit)"
           test -n "$(find dist -maxdepth 1 -type f -name '*.tar.gz' -print -quit)"
+          python - <<'PY'
+          import os
+          import tomllib
+          from pathlib import Path
+
+          expected = os.environ["RELEASE_TAG"]
+          if not expected.startswith("v"):
+              raise SystemExit("release tag must start with v")
+          version = tomllib.loads(Path("pyproject.toml").read_text())["project"]["version"]
+          if expected[1:] != version:
+              raise SystemExit(f"release tag {expected!r} does not match package version {version!r}")
+          PY
+          python -m twine check dist/*
+      - uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3.0.0
+        with:
+          subject-path: "dist/*"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-dists
