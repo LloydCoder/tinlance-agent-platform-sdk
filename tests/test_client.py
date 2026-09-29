@@ -1,0 +1,256 @@
+from __future__ import annotations
+
+import json
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from uuid import uuid4
+
+import pytest
+
+from tinlance_agent_platform_sdk import (
+    AgentPlatform,
+    ApiVersionError,
+    AuthenticationError,
+    IdempotencyConflictError,
+    InvalidRequestError,
+    PermissionError,
+    PlatformError,
+    RequestTooLargeError,
+    UnsupportedMediaTypeError,
+)
+
+TENANT = "tenant-a"
+SUBJECT = "user-a"
+TOKEN = "opaque-token"
+AGENT_ID = uuid4()
+TASK_ID = uuid4()
+RUN_ID = uuid4()
+APPROVAL_ID = uuid4()
+EVENT_ID = uuid4()
+EVIDENCE_ID = uuid4()
+
+
+class FakePlatform:
+    def __init__(self) -> None:
+        self.requests: list[dict[str, object]] = []
+        self.headers: list[dict[str, str]] = []
+        self.responses: dict[str, tuple[int, dict[str, object]]] = {}
+        self.server = self._server()
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+
+    def _server(self) -> ThreadingHTTPServer:
+        parent = self
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self) -> None:  # noqa: N802
+                length = int(self.headers.get("Content-Length", "0"))
+                body = json.loads(self.rfile.read(length))
+                parent.requests.append(body)
+                parent.headers.append({key.lower(): value for key, value in self.headers.items()})
+                operation = body["operation"]
+                if not isinstance(operation, str):
+                    raise AssertionError("operation must be text")
+                status, response = parent.responses.get(operation, parent._default(operation))
+                raw = json.dumps(response).encode()
+                self.send_response(status)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("X-Tinlance-API-Version", "1.1")
+                self.send_header("Content-Length", str(len(raw)))
+                self.end_headers()
+                self.wfile.write(raw)
+
+            def log_message(self, _format: str, *_args: object) -> None:
+                return
+
+        return ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+
+    def _default(self, operation: str) -> tuple[int, dict[str, object]]:
+        if operation == "health":
+            return 200, {"status": "ok", "payload": {"ready": True}}
+        if operation == "principal.get":
+            return 200, {"status": "ok", "payload": {"user_id": SUBJECT}}
+        if operation == "agents.list":
+            return 200, {"status": "ok", "payload": {"agents": [{
+                "agent_id": str(AGENT_ID), "name": "security-agent", "version": "1.0.0"
+            }]}}
+        if operation == "capabilities.list":
+            return 200, {"status": "ok", "payload": {"capabilities": [{"capability_id": "repository.read"}]}}
+        if operation == "runs.create":
+            return 200, {"status": "accepted", "payload": {
+                "run_id": str(RUN_ID), "task_id": str(TASK_ID), "state": "running",
+                "agent_id": str(AGENT_ID)
+            }}
+        if operation == "runs.cancel":
+            return 200, {"status": "accepted", "payload": {
+                "run_id": str(RUN_ID), "task_id": str(TASK_ID), "state": "cancelled",
+                "agent_id": str(AGENT_ID)
+            }}
+        if operation == "approvals.request":
+            return 200, {"status": "accepted", "payload": {"approval_id": str(APPROVAL_ID)}}
+        if operation == "runs.events":
+            return 200, {"status": "ok", "payload": {"events": [{
+                "event_id": str(EVENT_ID), "event_type": "run.created",
+                "occurred_at": "2026-09-29T09:00:00+00:00",
+                "request_id": "request-id", "correlation_id": "request-id",
+                "workspace_id": TENANT, "task_id": None, "agent_id": None,
+                "platform_run_id": str(RUN_ID), "payload": {"task_id": str(TASK_ID)}
+            }]}}
+        if operation == "runs.evidence":
+            return 200, {"status": "ok", "payload": {"evidence": [{"evidence_id": str(EVIDENCE_ID)}]}}
+        return 400, {"error": "invalid_request"}
+
+    def close(self) -> None:
+        self.server.shutdown()
+        self.server.server_close()
+        self.thread.join(timeout=2)
+
+
+@pytest.fixture
+def fake() -> FakePlatform:
+    server = FakePlatform()
+    yield server
+    server.close()
+
+
+def make_client(fake: FakePlatform) -> AgentPlatform:
+    return AgentPlatform(
+        base_url=f"http://127.0.0.1:{fake.server.server_address[1]}",
+        bearer_token=TOKEN,
+        tenant_id=TENANT,
+        subject_id=SUBJECT,
+    )
+
+
+def test_v1_1_public_surface(fake: FakePlatform) -> None:
+    sdk = make_client(fake)
+    assert sdk.health().ready is True
+    assert sdk.principal.get().user_id == SUBJECT
+    assert sdk.agents.list()[0].agent_id == AGENT_ID
+    assert sdk.capabilities.list(AGENT_ID)[0].capability_id == "repository.read"
+    assert sdk.runs.create(TASK_ID, AGENT_ID, "inspect repository").run_id == RUN_ID
+    assert sdk.runs.cancel(RUN_ID).state == "cancelled"
+    assert sdk.approvals.request(
+        RUN_ID, "security.scan", "repo:example", "governed approval required"
+    ).approval_id == APPROVAL_ID
+    assert sdk.runs.events(RUN_ID)[0].event_id == EVENT_ID
+    assert sdk.runs.evidence(RUN_ID)[0].evidence_id == EVIDENCE_ID
+
+
+def test_wire_contract_and_correlation_headers(fake: FakePlatform) -> None:
+    sdk = make_client(fake)
+    request_id = str(uuid4())
+    sdk.runs.create(TASK_ID, AGENT_ID, "inspect repository", request_id=request_id)
+    body = fake.requests[-1]
+    headers = fake.headers[-1]
+    assert body == {
+        "tenant_id": TENANT,
+        "subject_id": SUBJECT,
+        "operation": "runs.create",
+        "payload": {
+            "task_id": str(TASK_ID),
+            "agent_id": str(AGENT_ID),
+            "intent": "inspect repository",
+        },
+    }
+    assert headers["authorization"] == f"Bearer {TOKEN}"
+    assert headers["x-tinlance-api-version"] == "1.1"
+    assert headers["x-request-id"] == request_id
+    assert headers["idempotency-key"] == request_id
+    assert "tenant" not in headers["authorization"].lower()
+
+
+def test_read_operation_does_not_send_idempotency_key(fake: FakePlatform) -> None:
+    sdk = make_client(fake)
+    sdk.health()
+    assert "idempotency-key" not in fake.headers[-1]
+
+
+def test_traceparent_is_propagated(fake: FakePlatform) -> None:
+    sdk = AgentPlatform(
+        base_url=f"http://127.0.0.1:{fake.server.server_address[1]}",
+        bearer_token=TOKEN,
+        tenant_id=TENANT,
+        subject_id=SUBJECT,
+        traceparent="00-11111111111111111111111111111111-2222222222222222-01",
+    )
+    sdk.health()
+    assert fake.headers[-1]["traceparent"] == "00-11111111111111111111111111111111-2222222222222222-01"
+
+
+@pytest.mark.parametrize(
+    ("status", "error_code", "error_type"),
+    [
+        (400, "invalid_request", InvalidRequestError),
+        (401, "unauthorized", AuthenticationError),
+        (403, "forbidden", PermissionError),
+        (409, "idempotency_conflict", IdempotencyConflictError),
+        (413, "request_too_large", RequestTooLargeError),
+        (415, "json_required", UnsupportedMediaTypeError),
+        (426, "api_version_required", ApiVersionError),
+        (500, "platform_error", PlatformError),
+    ],
+)
+def test_error_mapping(
+    fake: FakePlatform, status: int, error_code: str, error_type: type[Exception]
+) -> None:
+    fake.responses["health"] = (status, {"error": error_code})
+    with pytest.raises(error_type) as exc_info:
+        make_client(fake).health()
+    error = exc_info.value
+    assert getattr(error, "status_code") == status
+    assert getattr(error, "error_code") == error_code
+    assert TOKEN not in str(error)
+
+
+def test_consequential_request_ids_are_reused_only_when_supplied(fake: FakePlatform) -> None:
+    sdk = make_client(fake)
+    request_id = str(uuid4())
+    sdk.runs.create(TASK_ID, AGENT_ID, "inspect repository", request_id=request_id)
+    first = fake.headers[-1]["x-request-id"]
+    sdk.runs.create(TASK_ID, AGENT_ID, "inspect repository")
+    second = fake.headers[-1]["x-request-id"]
+    assert first == request_id
+    assert second != first
+
+
+def test_request_id_validation() -> None:
+    sdk = AgentPlatform(
+        base_url="https://example.com",
+        bearer_token=TOKEN,
+        tenant_id=TENANT,
+        subject_id=SUBJECT,
+    )
+    with pytest.raises(ValueError):
+        sdk.health(request_id=" ")
+    with pytest.raises(ValueError):
+        sdk.health(request_id="x" * 257)
+    with pytest.raises(ValueError):
+        sdk.health(request_id="contains\nnewline")
+
+
+def test_client_configuration_validation() -> None:
+    with pytest.raises(ValueError):
+        AgentPlatform(base_url="not-a-url", bearer_token=TOKEN, tenant_id=TENANT, subject_id=SUBJECT)
+    with pytest.raises(ValueError):
+        AgentPlatform(base_url="https://example.com", bearer_token=TOKEN, tenant_id=TENANT, subject_id=SUBJECT, timeout=0)
+    with pytest.raises(ValueError):
+        AgentPlatform(base_url="https://example.com", bearer_token=TOKEN, tenant_id=TENANT, subject_id=SUBJECT, traceparent="invalid")
+    with pytest.raises(ValueError):
+        AgentPlatform(base_url="https://example.com", bearer_token=TOKEN, tenant_id=TENANT, subject_id=SUBJECT, api_version="9.9")
+
+
+def test_client_input_validation(fake: FakePlatform) -> None:
+    sdk = make_client(fake)
+    with pytest.raises(ValueError):
+        sdk.runs.create("not-a-uuid", AGENT_ID, "intent")
+    with pytest.raises(ValueError):
+        sdk.runs.create(TASK_ID, AGENT_ID, "")
+    with pytest.raises(ValueError):
+        sdk.capabilities.list("not-a-uuid")
+
+
+def test_malformed_success_payload_is_rejected(fake: FakePlatform) -> None:
+    fake.responses["health"] = (200, {"status": "ok", "payload": {"ready": "yes"}})
+    with pytest.raises(ValueError):
+        make_client(fake).health()
