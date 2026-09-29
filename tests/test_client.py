@@ -220,6 +220,7 @@ def test_traceparent_is_propagated(fake: FakePlatform) -> None:
         bearer_token=TOKEN,
         tenant_id=TENANT,
         subject_id=SUBJECT,
+        allow_insecure_http=True,
         traceparent="00-11111111111111111111111111111111-2222222222222222-01",
     )
     sdk.health()
