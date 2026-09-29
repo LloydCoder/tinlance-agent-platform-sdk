@@ -624,9 +624,7 @@ def test_r10_execution_and_approval_contract(fake: FakePlatform) -> None:
 
     sdk = make_client(fake)
     key = str(uuid4())
-    decision = sdk.approvals.decide(
-        APPROVAL_ID, True, request_id=str(uuid4()), idempotency_key=key
-    )
+    decision = sdk.approvals.decide(APPROVAL_ID, True, request_id=str(uuid4()), idempotency_key=key)
     assert decision.approval_id == APPROVAL_ID
     invocation = ToolInvocation(
         "reference.echo", "repository.read", "read", "repo:example", {"path": "README.md"}
