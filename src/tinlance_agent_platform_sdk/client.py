@@ -21,6 +21,7 @@ from .errors import (
     TransportError,
     UnsupportedMediaTypeError,
 )
+from .tools import ToolInvocation
 from .models import (
     Agent,
     ApprovalDecision,
