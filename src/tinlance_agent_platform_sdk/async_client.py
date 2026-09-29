@@ -131,6 +131,18 @@ class _AsyncApprovals:
         )
 
 
+class _AsyncExecutions:
+    def __init__(self, client: AsyncAgentPlatform) -> None:
+        self._client = client
+
+    async def get(self, execution_id: UUID | str, *, request_id: str | None = None) -> Execution:
+        return await asyncio.to_thread(
+            self._client._sync.executions.get,
+            execution_id,
+            request_id=request_id,
+        )
+
+
 class _AsyncTools:
     def __init__(self, client: AsyncAgentPlatform) -> None:
         self._client = client
@@ -164,6 +176,7 @@ class AsyncAgentPlatform:
         self.capabilities = _AsyncCapabilities(self)
         self.runs = _AsyncRuns(self)
         self.approvals = _AsyncApprovals(self)
+        self.executions = _AsyncExecutions(self)
         self.tools = _AsyncTools(self)
 
     async def health(self, *, request_id: str | None = None) -> Health:
