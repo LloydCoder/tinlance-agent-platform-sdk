@@ -8,6 +8,13 @@ from typing import Any
 from uuid import UUID
 
 
+def _text(payload: dict[str, Any], key: str) -> str:
+    value = payload.get(key)
+    if not isinstance(value, str) or not value:
+        raise ValueError(f"Platform returned an invalid {key}")
+    return value
+
+
 def _uuid(value: str) -> UUID:
     try:
         return UUID(value)
@@ -47,11 +54,9 @@ class Agent:
 
     @classmethod
     def from_payload(cls, payload: dict[str, Any]) -> Agent:
-        agent_id = payload.get("agent_id")
-        name = payload.get("name")
-        version = payload.get("version")
-        if not all(isinstance(value, str) and value for value in (agent_id, name, version)):
-            raise ValueError("Platform returned an invalid agent payload")
+        agent_id = _text(payload, "agent_id")
+        name = _text(payload, "name")
+        version = _text(payload, "version")
         return cls(_uuid(agent_id), name, version)
 
 
@@ -76,14 +81,10 @@ class Run:
 
     @classmethod
     def from_payload(cls, payload: dict[str, Any]) -> Run:
-        run_id = payload.get("run_id")
-        task_id = payload.get("task_id")
-        state = payload.get("state")
-        agent_id = payload.get("agent_id")
-        if not all(
-            isinstance(value, str) and value for value in (run_id, task_id, state, agent_id)
-        ):
-            raise ValueError("Platform returned an invalid run payload")
+        run_id = _text(payload, "run_id")
+        task_id = _text(payload, "task_id")
+        state = _text(payload, "state")
+        agent_id = _text(payload, "agent_id")
         if state not in RUN_STATES:
             raise ValueError("Platform returned an invalid run state")
         return cls(_uuid(run_id), _uuid(task_id), state, _uuid(agent_id))
