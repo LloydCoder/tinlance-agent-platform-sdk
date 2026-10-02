@@ -60,7 +60,7 @@ class ClientConfig:
         if self.timeout <= 0:
             raise ValueError("timeout must be positive")
         if self.api_version != API_VERSION:
-            raise ValueError(f"SDK v0.1 supports Platform API version {API_VERSION} only")
+            raise ValueError(f"SDK v1.0 supports Platform API version {API_VERSION} only")
         if self.max_response_bytes <= 0:
             raise ValueError("max_response_bytes must be positive")
         if not self.user_agent.strip():
