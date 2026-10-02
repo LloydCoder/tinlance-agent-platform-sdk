@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import json
 import re
+import ssl
 import time
 import urllib.error
 import urllib.request
-from typing import Any, NoReturn
+from typing import Any, Callable, NoReturn
 from urllib.parse import urlsplit
 from uuid import UUID, uuid4
 
@@ -387,8 +388,8 @@ class AgentPlatform:
         self,
         *,
         base_url: str,
-        bearer_token: str,
-        tenant_id: str,
+        bearer_token: str = "",
+        tenant_id: str = "",
         subject_id: str,
         timeout: float = 10.0,
         api_version: str = API_VERSION,
@@ -408,10 +409,17 @@ class AgentPlatform:
             raise ValueError("base_url must not contain query or fragment components")
         if parsed_url.scheme != "https" and not allow_insecure_http:
             raise ValueError("base_url must use HTTPS unless allow_insecure_http=True")
-        if not bearer_token or any(character.isspace() for character in bearer_token):
-            raise ValueError("bearer_token must be non-empty and contain no whitespace")
+        if not bearer_token and credential_provider is None:
+            raise ValueError("bearer_token or credential_provider is required")
+        if bearer_token and any(character.isspace() for character in bearer_token):
+            raise ValueError("bearer_token must contain no whitespace")
+        if client_cert is not None and client_key is None:
+            raise ValueError("client_key is required when client_cert is configured")
+        if client_key is not None and client_cert is None:
+            raise ValueError("client_cert is required when client_key is configured")
         self._base_url = base_url.rstrip("/")
         self._bearer_token = bearer_token
+        self._credential_provider = credential_provider
         self._tenant_id = _required_text(tenant_id, "tenant_id")
         self._subject_id = _required_text(subject_id, "subject_id")
         if timeout <= 0:
