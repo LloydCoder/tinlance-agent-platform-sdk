@@ -59,6 +59,7 @@ class RetryPolicy:
 
 def _parse_retry_after(value: str) -> float | None:
     value = value.strip()
+    seconds: float
     try:
         seconds = float(value)
     except ValueError:
@@ -68,7 +69,7 @@ def _parse_retry_after(value: str) -> float | None:
             return None
         if date.tzinfo is None:
             date = date.replace(tzinfo=UTC)
-        seconds = (date - datetime.now(UTC)).total_seconds()
+        seconds = float((date - datetime.now(UTC)).total_seconds())
     return max(0.0, seconds)
 
 
