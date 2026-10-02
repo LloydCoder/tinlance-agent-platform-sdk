@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import json
 import re
+import time
 import urllib.error
 import urllib.request
-import time
 from typing import Any, NoReturn
 from urllib.parse import urlsplit
 from uuid import UUID, uuid4
