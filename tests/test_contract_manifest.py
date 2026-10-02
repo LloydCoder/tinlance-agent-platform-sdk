@@ -2,7 +2,7 @@ import json
 
 from pathlib import Path
 
-from tinlance_agent_platform_sdk.compat import EXPECTED_SUCCESS_STATUS, DEFERRED_OPERATIONS
+from tinlance_agent_platform_sdk.compat import DEFERRED_OPERATIONS, EXPECTED_SUCCESS_STATUS
 
 
 def test_language_neutral_contract_manifest_matches_python_surface() -> None:
