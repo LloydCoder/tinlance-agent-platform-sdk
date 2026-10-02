@@ -52,7 +52,7 @@ def test_retry_call_retries_then_succeeds(monkeypatch: pytest.MonkeyPatch) -> No
         return 503, None
 
     policy = RetryPolicy(max_attempts=3, initial_delay=0, max_delay=1, jitter=0)
-    monkeypatch.setattr("tinlance_agent_platform_sdk.retry.time.sleep", lambda _: sleeps.append(0.0))
+    monkeypatch.setattr(\n        "tinlance_agent_platform_sdk.retry.time.sleep", lambda _: sleeps.append(0.0)\n    )
     assert retry_call(
         operation,
         policy=policy,
