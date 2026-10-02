@@ -1,5 +1,4 @@
 import json
-
 from pathlib import Path
 
 from tinlance_agent_platform_sdk.compat import DEFERRED_OPERATIONS, EXPECTED_SUCCESS_STATUS
