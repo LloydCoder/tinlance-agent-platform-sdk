@@ -1,4 +1,6 @@
-# Tinlance Agent Platform SDK v0.1 Contract
+# Tinlance Agent Platform SDK v0.1 Historical Contract
+
+> Superseded by `docs/contracts/SDK-V1.0-CONTRACT.md`. Retained as the forensic v0.1 baseline; it is not the current public contract.
 
 **SDK:** 0.1.0  
 **Platform API:** 1.1  
