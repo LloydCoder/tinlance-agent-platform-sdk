@@ -397,7 +397,7 @@ class AgentPlatform:
         traceparent: str | None = None,
         allow_insecure_http: bool = False,
         max_response_bytes: int = MAX_RESPONSE_BYTES,
-        user_agent: str = "tinlance-agent-platform-sdk/0.1.0",
+        user_agent: str = "tinlance-agent-platform-sdk/1.0.0",
         retry_policy: RetryPolicy | None = None,
         telemetry: TelemetrySink | None = None,
         credential_provider: Callable[[], str] | None = None,
