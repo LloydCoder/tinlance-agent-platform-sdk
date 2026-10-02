@@ -178,7 +178,7 @@ The Agent Platform repository contains an internal `packages/sdk` domain/composi
 
 ## Contract
 
-The SDK v1.0 contract is documented in [docs/contracts/SDK-V1.0-CONTRACT.md](docs/contracts/SDK-V0.1-CONTRACT.md). R10 authority remains in the Platform's `docs/R10-GOVERNED-EXECUTION.md`.
+The SDK v1.0 contract is documented in [docs/contracts/SDK-V1.0-CONTRACT.md](docs/contracts/SDK-V1.0-CONTRACT.md). R10 authority remains in the Platform's `docs/R10-GOVERNED-EXECUTION.md`.
 
 The server-side forensic baseline remains authoritative in the Tinlance Agent Platform repository. If the server API changes, the server contract and executable tests must change before the SDK expands its public surface.
 
