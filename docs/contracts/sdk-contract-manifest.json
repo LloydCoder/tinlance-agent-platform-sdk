@@ -1,0 +1,44 @@
+{
+  "schema_version": "1",
+  "sdk_version": "0.1.0",
+  "platform_api_version": "1.1",
+  "wire": {
+    "method": "POST",
+    "path": "/v1/agent-platform",
+    "request_content_type": "application/json",
+    "response_content_type": "application/json"
+  },
+  "operations": {
+    "health": "ok",
+    "principal.get": "ok",
+    "agents.list": "ok",
+    "capabilities.list": "ok",
+    "runs.create": "accepted",
+    "runs.cancel": "accepted",
+    "approvals.request": "accepted",
+    "approvals.decide": "accepted",
+    "tools.execute": "accepted",
+    "executions.get": "ok",
+    "runs.events": "ok",
+    "runs.evidence": "ok"
+  },
+  "deferred_operations": [
+    "runs.get",
+    "runs.wait",
+    "approvals.get",
+    "approvals.approve",
+    "approvals.reject",
+    "approvals.cancel",
+    "tools.list",
+    "events.stream",
+    "evidence.get",
+    "pagination",
+    "webhooks"
+  ],
+  "generation_rules": {
+    "python": "reference",
+    "typescript": "derive-from-contract",
+    "go": "derive-from-contract",
+    "authority": "platform-only"
+  }
+}
