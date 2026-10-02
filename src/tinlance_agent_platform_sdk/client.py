@@ -555,9 +555,7 @@ class AgentPlatform:
                 self._emit_telemetry_error(operation, rid, type(exc).__name__, None, started)
                 raise
             except (urllib.error.URLError, TimeoutError, OSError) as exc:
-                self._emit_telemetry_error(
-                    operation, rid, type(exc).__name__, None, started
-                )
+                self._emit_telemetry_error(operation, rid, type(exc).__name__, None, started)
                 raise TransportError("request to Tinlance Agent Platform failed") from exc
         else:
             raise TransportError("request retry loop exhausted")
