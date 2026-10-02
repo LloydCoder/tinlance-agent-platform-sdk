@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added bounded transient HTTP retry policy with Retry-After support.
+- Reconciled the public documentation with the R10 developer surface.
+- Added the M12–M20 enterprise completion contract.
+
+## Unreleased
+
 - Added immutable ClientConfig and secure client-foundation configuration.
 - Added async facade reusing the audited synchronous transport.
 - Added typed tool contracts without local authorization or execution.
