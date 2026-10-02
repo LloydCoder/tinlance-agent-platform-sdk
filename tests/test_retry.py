@@ -45,14 +45,16 @@ def test_retry_call_retries_then_succeeds(monkeypatch: pytest.MonkeyPatch) -> No
         attempts += 1
         if attempts < 3:
             raise RuntimeError("transient")
-
         return "ok"
 
     def status_getter(_: BaseException) -> tuple[int | None, str | None]:
         return 503, None
 
     policy = RetryPolicy(max_attempts=3, initial_delay=0, max_delay=1, jitter=0)
-    monkeypatch.setattr(\n        "tinlance_agent_platform_sdk.retry.time.sleep", lambda _: sleeps.append(0.0)\n    )
+    monkeypatch.setattr(
+        "tinlance_agent_platform_sdk.retry.time.sleep",
+        lambda _: sleeps.append(0.0),
+    )
     assert retry_call(
         operation,
         policy=policy,
