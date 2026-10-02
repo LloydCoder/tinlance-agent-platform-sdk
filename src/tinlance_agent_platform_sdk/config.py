@@ -18,8 +18,8 @@ class ClientConfig:
 
     base_url: str
     bearer_token: str = ""
-    tenant_id: str
-    subject_id: str
+    tenant_id: str = ""
+    subject_id: str = ""
     timeout: float = 10.0
     api_version: str = API_VERSION
     traceparent: str | None = None
