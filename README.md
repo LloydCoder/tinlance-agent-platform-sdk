@@ -89,7 +89,7 @@ The SDK never automatically retries a consequential operation with a new request
 
 Optional W3C `traceparent`/`tracestate` can be supplied through `TraceContext` and are propagated without granting authority. The SDK follows W3C Trace Context validation rules and does not use baggage as an authorization channel.
 
-### M0 transport hardening
+### M0–M13 transport hardening
 
 - HTTPS is required by default; local HTTP requires explicit `allow_insecure_http=True`.
 - Automatic redirects are disabled for authenticated requests.
@@ -97,8 +97,11 @@ Optional W3C `traceparent`/`tracestate` can be supplied through `TraceContext` a
 - Response media type must be `application/json`.
 - Response bodies are bounded (default 8 MiB; configurable with `max_response_bytes`).
 - Success envelopes are validated against the specific operation's contract.
+- Transient HTTP 429/502/503/504 responses support bounded exponential backoff with jitter.
+- `Retry-After` is honored and capped by the configured retry budget.
+- Consequential operations are not retried unless `RetryPolicy(retry_consequential=True)` is explicitly configured.
 
-See [docs/M0.md](docs/M0.md) for the complete M0 acceptance gates.
+See [docs/M0.md](docs/M0.md) and [docs/M12-M20.md](docs/M12-M20.md) for acceptance gates.
 
 ## Typed models
 
@@ -131,20 +134,22 @@ Stable Platform HTTP failures map to typed exceptions:
 
 Exceptions preserve the HTTP status and stable Platform error code where available. Authorization tokens are not included in exception messages.
 
-## Deliberately deferred
+## Contract-gated future surfaces
 
-SDK v0.1 does not expose operations for:
+The SDK only publishes operations that exist in a versioned Platform contract.
 
-- approval retrieval or approve/reject/cancel
-- direct tool execution or registration
-- event streaming
+The following remain intentionally contract-gated rather than invented client APIs:
+
+- streaming/realtime event delivery
 - evidence content retrieval
 - pagination
 - webhooks
-- generated OpenAPI clients
+- generated protocol clients
 - resource-oriented REST paths
 
-Those capabilities must first become versioned Platform API contracts. This prevents the SDK from becoming a second, invented Platform API.
+When the Platform publishes a corresponding versioned contract and executable
+conformance tests, the SDK can add the typed surface without changing the
+authority boundary. See [docs/M12-M20.md](docs/M12-M20.md).
 
 ## Architecture boundary
 
