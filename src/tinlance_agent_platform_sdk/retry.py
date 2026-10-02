@@ -47,11 +47,11 @@ class RetryPolicy:
         if retry_after:
             parsed = _parse_retry_after(retry_after)
             if parsed is not None:
-                return min(parsed, self.max_delay)
+                return float(min(parsed, self.max_delay))
         base = min(self.max_delay, self.initial_delay * (2 ** max(0, attempt - 1)))
         if not self.jitter:
-            return base
-        return min(self.max_delay, base + random.uniform(0.0, base * self.jitter))
+            return float(base)
+        return float(min(self.max_delay, base + random.uniform(0.0, base * self.jitter)))
 
     def sleep(self, attempt: int, retry_after: str | None = None) -> None:
         time.sleep(self.delay(attempt, retry_after))
