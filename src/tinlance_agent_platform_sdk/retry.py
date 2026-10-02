@@ -64,13 +64,16 @@ def _parse_retry_after(value: str) -> float | None:
         seconds = float(value)
     except ValueError:
         try:
-            date = email.utils.parsedate_to_datetime(value)
+            parsed_date = email.utils.parsedate_to_datetime(value)
         except (TypeError, ValueError, IndexError):
             return None
+        if not isinstance(parsed_date, datetime):
+            return None
+        date = parsed_date
         if date.tzinfo is None:
             date = date.replace(tzinfo=UTC)
         seconds = float((date - datetime.now(UTC)).total_seconds())
-    return max(0.0, seconds)
+    return float(max(0.0, seconds))
 
 
 def retry_call(
