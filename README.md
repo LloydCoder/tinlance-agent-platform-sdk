@@ -18,9 +18,9 @@ This repository is the official external developer surface for Tinlance Agent Pl
 
 The SDK exposes typed R10 contracts, lifecycle interpretation helpers, declarative capability metadata, approval workflow composition, governed execution/result handling, opaque evidence references, structured errors, explicit idempotency helpers, W3C trace-context propagation, and agent scaffolding. None of these helpers grants authority or reimplements Platform policy.
 
-## v0.1 / Platform API 1.1
+## v1.0 / Platform API 1.1
 
-SDK 0.1.0 targets the currently implemented Platform API 1.1 operation gateway.
+SDK 1.0.0 targets the currently implemented Platform API 1.1 operation gateway.
 
 | SDK surface | Platform operation |
 | --- | --- |
@@ -178,9 +178,26 @@ The Agent Platform repository contains an internal `packages/sdk` domain/composi
 
 ## Contract
 
-The SDK v0.1 contract is documented in [docs/contracts/SDK-V0.1-CONTRACT.md](docs/contracts/SDK-V0.1-CONTRACT.md). R10 authority remains in the Platform's `docs/R10-GOVERNED-EXECUTION.md`.
+The SDK v1.0 contract is documented in [docs/contracts/SDK-V1.0-CONTRACT.md](docs/contracts/SDK-V0.1-CONTRACT.md). R10 authority remains in the Platform's `docs/R10-GOVERNED-EXECUTION.md`.
 
 The server-side forensic baseline remains authoritative in the Tinlance Agent Platform repository. If the server API changes, the server contract and executable tests must change before the SDK expands its public surface.
+
+## Enterprise transport and diagnostics
+
+Enterprise deployments may provide a caller-owned `credential_provider` for
+short-lived credential rotation, a custom CA bundle, mutual TLS client
+certificates, and an explicit HTTP(S) proxy. These settings only configure the
+SDK transport; Platform identity and authorization remain server-side.
+
+Optional `TelemetrySink` hooks expose operation/request/status/timing metadata
+without request or response payloads. Telemetry callback failures cannot change
+the request result.
+
+Local diagnostics never read credentials or make network requests:
+
+```bash
+tinlance-agent-sdk
+```
 
 ## Development
 
@@ -214,7 +231,7 @@ M5 Evidence + Events
 M6 Async API
 M7 Research Agent
 M8 Security + compatibility hardening
-M9 v0.1 release
+M9 v1.0 release
 M10 Production developer experience
 M11 v1.0 readiness
 ```

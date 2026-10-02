@@ -50,6 +50,7 @@ from .models import (
 )
 from .research import ResearchAgent, ResearchRequest, ResearchRun
 from .retry import RetryPolicy
+from .telemetry import TelemetrySink
 from .tools import ToolContractRegistry, ToolDescriptor, ToolInvocation, ToolResult
 
 __all__ = [
@@ -101,6 +102,7 @@ __all__ = [
     "ToolDescriptor",
     "ToolInvocation",
     "ToolResult",
+    "TelemetrySink",
     "SdkError",
     "TransportError",
     "UnsupportedMediaTypeError",

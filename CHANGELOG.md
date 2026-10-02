@@ -1,18 +1,16 @@
 # Changelog
 
-## Unreleased
+## 1.0.0
 
-- Added bounded transient HTTP retry policy with Retry-After support.
-- Reconciled the public documentation with the R10 developer surface.
-- Added the M12–M20 enterprise completion contract.
-
-## Unreleased
-
-- Added immutable ClientConfig and secure client-foundation configuration.
-- Added async facade reusing the audited synchronous transport.
-- Added typed tool contracts without local authorization or execution.
-- Added governed ResearchAgent start composition.
-- Added compatibility declarations and M0–M11 phase documentation.
+- Enterprise GA of the external Tinlance Agent Platform SDK for Platform API 1.1.
+- Added governed R10 developer-surface contracts and agent scaffolding.
+- Added bounded transient retries with Retry-After support and conservative consequential-operation behavior.
+- Added contract governance, streaming/resource readiness gates, and canonical contract manifests.
+- Added optional payload-free telemetry hooks with failure isolation.
+- Added enterprise credential rotation, custom CA, mTLS and proxy configuration.
+- Added compatibility/security matrices, SBOM/provenance release controls and artifact smoke testing.
+- Added safe local diagnostics through the `tinlance-agent-sdk` command.
+- Reconciled public documentation with the Platform authority boundary.
 
 ## 0.1.0
 
