@@ -182,6 +182,23 @@ The SDK v1.0 contract is documented in [docs/contracts/SDK-V1.0-CONTRACT.md](doc
 
 The server-side forensic baseline remains authoritative in the Tinlance Agent Platform repository. If the server API changes, the server contract and executable tests must change before the SDK expands its public surface.
 
+## Enterprise transport and diagnostics
+
+Enterprise deployments may provide a caller-owned `credential_provider` for
+short-lived credential rotation, a custom CA bundle, mutual TLS client
+certificates, and an explicit HTTP(S) proxy. These settings only configure the
+SDK transport; Platform identity and authorization remain server-side.
+
+Optional `TelemetrySink` hooks expose operation/request/status/timing metadata
+without request or response payloads. Telemetry callback failures cannot change
+the request result.
+
+Local diagnostics never read credentials or make network requests:
+
+```bash
+tinlance-agent-sdk
+```
+
 ## Development
 
 ```bash
