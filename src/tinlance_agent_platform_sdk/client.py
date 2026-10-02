@@ -449,9 +449,7 @@ class AgentPlatform:
                 raise ValueError("proxy_url must be an absolute HTTP(S) URL")
             if parsed_proxy.username is not None or parsed_proxy.password is not None:
                 raise ValueError("proxy_url must not contain userinfo")
-            handlers.append(
-                urllib.request.ProxyHandler({"http": proxy_url, "https": proxy_url})
-            )
+            handlers.append(urllib.request.ProxyHandler({"http": proxy_url, "https": proxy_url}))
         else:
             handlers.append(urllib.request.ProxyHandler({}))
         self._opener = urllib.request.build_opener(*handlers)
