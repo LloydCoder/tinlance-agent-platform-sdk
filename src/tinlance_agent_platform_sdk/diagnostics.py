@@ -6,7 +6,7 @@ import json
 import platform
 import sys
 
-from .compat import SDK_VERSION, PLATFORM_API_VERSION
+from .compat import PLATFORM_API_VERSION, SDK_VERSION
 
 
 def diagnostics() -> dict[str, str]:
