@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 import urllib.error
 import urllib.request
 from typing import Any, NoReturn
@@ -35,6 +36,7 @@ from .models import (
     Run,
 )
 from .retry import RetryPolicy
+from .telemetry import TelemetrySink
 from .tools import ToolInvocation
 
 API_VERSION = "1.1"
@@ -395,6 +397,7 @@ class AgentPlatform:
         max_response_bytes: int = MAX_RESPONSE_BYTES,
         user_agent: str = "tinlance-agent-platform-sdk/0.1.0",
         retry_policy: RetryPolicy | None = None,
+        telemetry: TelemetrySink | None = None,
     ) -> None:
         parsed_url = urlsplit(base_url)
         if parsed_url.scheme not in {"http", "https"} or not parsed_url.hostname:
@@ -421,6 +424,7 @@ class AgentPlatform:
         self._user_agent = user_agent.strip()
         self._opener = urllib.request.build_opener(_NoRedirectHandler)
         self._retry_policy = retry_policy or RetryPolicy()
+        self._telemetry = telemetry
         self._timeout = timeout
         if api_version != API_VERSION:
             raise ValueError(f"SDK v0.1 supports Platform API version {API_VERSION} only")
@@ -433,6 +437,53 @@ class AgentPlatform:
         self.approvals = _ApprovalsResource(self)
         self.executions = _ExecutionsResource(self)
         self.tools = _ToolsResource(self)
+
+    def _emit_telemetry_request(self, operation: str, request_id: str) -> None:
+        sink = self._telemetry
+        if sink is None:
+            return
+        try:
+            sink.on_request(operation=operation, request_id=request_id)
+        except Exception:
+            return
+
+    def _emit_telemetry_response(
+        self, operation: str, request_id: str, status_code: int, started: float
+    ) -> None:
+        sink = self._telemetry
+        if sink is None:
+            return
+        try:
+            sink.on_response(
+                operation=operation,
+                request_id=request_id,
+                status_code=status_code,
+                elapsed_ms=(time.monotonic() - started) * 1000,
+            )
+        except Exception:
+            return
+
+    def _emit_telemetry_error(
+        self,
+        operation: str,
+        request_id: str,
+        error_type: str,
+        status_code: int | None,
+        started: float,
+    ) -> None:
+        sink = self._telemetry
+        if sink is None:
+            return
+        try:
+            sink.on_error(
+                operation=operation,
+                request_id=request_id,
+                error_type=error_type,
+                status_code=status_code,
+                elapsed_ms=(time.monotonic() - started) * 1000,
+            )
+        except Exception:
+            return
 
     def health(self, *, request_id: str | None = None) -> Health:
         return Health.from_payload(
@@ -480,6 +531,8 @@ class AgentPlatform:
             headers=headers,
             method="POST",
         )
+        started = time.monotonic()
+        self._emit_telemetry_request(operation, rid)
         for attempt in range(1, self._retry_policy.max_attempts + 1):
             try:
                 with self._opener.open(request, timeout=self._timeout) as response:
@@ -487,6 +540,7 @@ class AgentPlatform:
                     response_body = self._decode_response(
                         self._read_limited(response, self._max_response_bytes)
                     )
+                self._emit_telemetry_response(operation, rid, 200, started)
                 break
             except urllib.error.HTTPError as exc:
                 retry_after = exc.headers.get("Retry-After")
@@ -495,10 +549,13 @@ class AgentPlatform:
                 ):
                     self._retry_policy.sleep(attempt, retry_after)
                     continue
+                self._emit_telemetry_error(operation, rid, type(exc).__name__, exc.code, started)
                 self._raise_http_error(exc, self._max_response_bytes)
-            except TransportError:
+            except TransportError as exc:
+                self._emit_telemetry_error(operation, rid, type(exc).__name__, None, started)
                 raise
             except (urllib.error.URLError, TimeoutError, OSError) as exc:
+                self._emit_telemetry_error(operation, rid, type(exc).__name__, None, started)
                 raise TransportError("request to Tinlance Agent Platform failed") from exc
         else:
             raise TransportError("request retry loop exhausted")
