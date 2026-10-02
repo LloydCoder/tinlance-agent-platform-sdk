@@ -22,7 +22,6 @@ from .errors import (
     TransportError,
     UnsupportedMediaTypeError,
 )
-from .retry import RetryPolicy
 from .models import (
     Agent,
     ApprovalDecision,
@@ -35,6 +34,7 @@ from .models import (
     Principal,
     Run,
 )
+from .retry import RetryPolicy
 from .tools import ToolInvocation
 
 API_VERSION = "1.1"
