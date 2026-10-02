@@ -55,12 +55,15 @@ def test_retry_call_retries_then_succeeds(monkeypatch: pytest.MonkeyPatch) -> No
         "tinlance_agent_platform_sdk.retry.time.sleep",
         lambda _: sleeps.append(0.0),
     )
-    assert retry_call(
-        operation,
-        policy=policy,
-        consequential=False,
-        status_getter=status_getter,
-    ) == "ok"
+    assert (
+        retry_call(
+            operation,
+            policy=policy,
+            consequential=False,
+            status_getter=status_getter,
+        )
+        == "ok"
+    )
     assert attempts == 3
     assert len(sleeps) == 2
 
