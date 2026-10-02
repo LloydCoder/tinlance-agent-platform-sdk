@@ -8,6 +8,7 @@ from urllib.parse import urlsplit
 
 from .client import API_VERSION, MAX_RESPONSE_BYTES, _normalize_request_id
 from .context import TraceContext
+from .retry import RetryPolicy
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,6 +27,7 @@ class ClientConfig:
     allow_insecure_http: bool = False
     max_response_bytes: int = MAX_RESPONSE_BYTES
     user_agent: str = "tinlance-agent-platform-sdk/0.1.0"
+    retry_policy: RetryPolicy | None = None
 
     def __post_init__(self) -> None:
         parsed = urlsplit(self.base_url)
@@ -77,4 +79,5 @@ class ClientConfig:
             "allow_insecure_http": self.allow_insecure_http,
             "max_response_bytes": self.max_response_bytes,
             "user_agent": self.user_agent,
+            "retry_policy": self.retry_policy,
         }
