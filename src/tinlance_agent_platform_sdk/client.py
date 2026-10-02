@@ -22,6 +22,7 @@ from .errors import (
     TransportError,
     UnsupportedMediaTypeError,
 )
+from .retry import RetryPolicy
 from .models import (
     Agent,
     ApprovalDecision,
@@ -393,6 +394,7 @@ class AgentPlatform:
         allow_insecure_http: bool = False,
         max_response_bytes: int = MAX_RESPONSE_BYTES,
         user_agent: str = "tinlance-agent-platform-sdk/0.1.0",
+        retry_policy: RetryPolicy | None = None,
     ) -> None:
         parsed_url = urlsplit(base_url)
         if parsed_url.scheme not in {"http", "https"} or not parsed_url.hostname:
@@ -418,6 +420,7 @@ class AgentPlatform:
         self._max_response_bytes = max_response_bytes
         self._user_agent = user_agent.strip()
         self._opener = urllib.request.build_opener(_NoRedirectHandler)
+        self._retry_policy = retry_policy or RetryPolicy()
         self._timeout = timeout
         if api_version != API_VERSION:
             raise ValueError(f"SDK v0.1 supports Platform API version {API_VERSION} only")
@@ -477,18 +480,28 @@ class AgentPlatform:
             headers=headers,
             method="POST",
         )
-        try:
-            with self._opener.open(request, timeout=self._timeout) as response:
-                self._validate_response_headers(response)
-                response_body = self._decode_response(
-                    self._read_limited(response, self._max_response_bytes)
-                )
-        except urllib.error.HTTPError as exc:
-            self._raise_http_error(exc, self._max_response_bytes)
-        except TransportError:
-            raise
-        except (urllib.error.URLError, TimeoutError, OSError) as exc:
-            raise TransportError("request to Tinlance Agent Platform failed") from exc
+        for attempt in range(1, self._retry_policy.max_attempts + 1):
+            try:
+                with self._opener.open(request, timeout=self._timeout) as response:
+                    self._validate_response_headers(response)
+                    response_body = self._decode_response(
+                        self._read_limited(response, self._max_response_bytes)
+                    )
+                break
+            except urllib.error.HTTPError as exc:
+                retry_after = exc.headers.get("Retry-After")
+                if attempt < self._retry_policy.max_attempts and self._retry_policy.allows(
+                    consequential=consequential, status_code=exc.code
+                ):
+                    self._retry_policy.sleep(attempt, retry_after)
+                    continue
+                self._raise_http_error(exc, self._max_response_bytes)
+            except TransportError:
+                raise
+            except (urllib.error.URLError, TimeoutError, OSError) as exc:
+                raise TransportError("request to Tinlance Agent Platform failed") from exc
+        else:
+            raise TransportError("request retry loop exhausted")
         if not isinstance(response_body, dict):
             raise PlatformError(
                 "Platform returned a non-object response",
