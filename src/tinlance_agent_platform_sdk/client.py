@@ -430,7 +430,25 @@ class AgentPlatform:
             raise ValueError("user_agent must be non-empty")
         self._max_response_bytes = max_response_bytes
         self._user_agent = user_agent.strip()
-        self._opener = urllib.request.build_opener(_NoRedirectHandler)
+        tls_context = ssl.create_default_context(cafile=ca_file)
+        if client_cert is not None and client_key is not None:
+            tls_context.load_cert_chain(client_cert, client_key)
+        handlers: list[Any] = [
+            _NoRedirectHandler,
+            urllib.request.HTTPSHandler(context=tls_context),
+        ]
+        if proxy_url is not None:
+            parsed_proxy = urlsplit(proxy_url)
+            if parsed_proxy.scheme not in {"http", "https"} or not parsed_proxy.hostname:
+                raise ValueError("proxy_url must be an absolute HTTP(S) URL")
+            if parsed_proxy.username is not None or parsed_proxy.password is not None:
+                raise ValueError("proxy_url must not contain userinfo")
+            handlers.append(
+                urllib.request.ProxyHandler({"http": proxy_url, "https": proxy_url})
+            )
+        else:
+            handlers.append(urllib.request.ProxyHandler({}))
+        self._opener = urllib.request.build_opener(*handlers)
         self._retry_policy = retry_policy or RetryPolicy()
         self._telemetry = telemetry
         self._timeout = timeout
@@ -445,6 +463,20 @@ class AgentPlatform:
         self.approvals = _ApprovalsResource(self)
         self.executions = _ExecutionsResource(self)
         self.tools = _ToolsResource(self)
+
+    def _current_credential(self) -> str:
+        credential = (
+            self._credential_provider()
+            if self._credential_provider is not None
+            else self._bearer_token
+        )
+        if (
+            not isinstance(credential, str)
+            or not credential
+            or any(character.isspace() for character in credential)
+        ):
+            raise ValueError("credential provider returned an invalid bearer credential")
+        return credential
 
     def _emit_telemetry_request(self, operation: str, request_id: str) -> None:
         sink = self._telemetry
@@ -525,7 +557,7 @@ class AgentPlatform:
             "Accept": "application/json",
             "Content-Type": "application/json",
             "User-Agent": self._user_agent,
-            "Authorization": f"Bearer {self._bearer_token}",
+            "Authorization": f"Bearer {self._current_credential()}",
             "X-Tinlance-API-Version": self._api_version,
             "X-Request-ID": rid,
         }
