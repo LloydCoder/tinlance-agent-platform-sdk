@@ -7,7 +7,7 @@ grants authority.
 
 from __future__ import annotations
 
-SDK_VERSION = "0.1.0"
+SDK_VERSION = "1.0.0"
 PLATFORM_API_VERSION = "1.1"
 SUPPORTED_PLATFORM_API_VERSIONS = frozenset({PLATFORM_API_VERSION})
 
