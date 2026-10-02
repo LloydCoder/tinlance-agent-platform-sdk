@@ -14,6 +14,6 @@
 - Added governed ResearchAgent start composition.
 - Added compatibility declarations and M0–M11 phase documentation.
 
-## 0.1.0
+## 1.0.0
 
 - Initial external SDK for Tinlance Agent Platform API 1.1.
