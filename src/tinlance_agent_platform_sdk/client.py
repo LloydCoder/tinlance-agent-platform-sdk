@@ -549,14 +549,10 @@ class AgentPlatform:
                 ):
                     self._retry_policy.sleep(attempt, retry_after)
                     continue
-                self._emit_telemetry_error(
-                    operation, rid, type(exc).__name__, exc.code, started
-                )
+                self._emit_telemetry_error(operation, rid, type(exc).__name__, exc.code, started)
                 self._raise_http_error(exc, self._max_response_bytes)
             except TransportError as exc:
-                self._emit_telemetry_error(
-                    operation, rid, type(exc).__name__, None, started
-                )
+                self._emit_telemetry_error(operation, rid, type(exc).__name__, None, started)
                 raise
             except (urllib.error.URLError, TimeoutError, OSError) as exc:
                 self._emit_telemetry_error(
