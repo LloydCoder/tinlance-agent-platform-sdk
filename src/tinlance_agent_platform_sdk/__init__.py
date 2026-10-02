@@ -49,6 +49,7 @@ from .models import (
     Run,
 )
 from .research import ResearchAgent, ResearchRequest, ResearchRun
+from .retry import RetryPolicy
 from .tools import ToolContractRegistry, ToolDescriptor, ToolInvocation, ToolResult
 
 __all__ = [
@@ -92,6 +93,7 @@ __all__ = [
     "ResearchAgent",
     "ResearchRequest",
     "ResearchRun",
+    "RetryPolicy",
     "PUBLIC_OPERATIONS",
     "SDK_VERSION",
     "SUPPORTED_PLATFORM_API_VERSIONS",
