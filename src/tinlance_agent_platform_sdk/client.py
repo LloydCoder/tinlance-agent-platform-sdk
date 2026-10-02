@@ -457,7 +457,7 @@ class AgentPlatform:
         self._telemetry = telemetry
         self._timeout = timeout
         if api_version != API_VERSION:
-            raise ValueError(f"SDK v0.1 supports Platform API version {API_VERSION} only")
+            raise ValueError(f"SDK v1.0 supports Platform API version {API_VERSION} only")
         self._api_version = api_version
         self._traceparent = _validate_traceparent(traceparent) if traceparent is not None else None
         self.principal = _PrincipalResource(self)
