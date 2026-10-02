@@ -68,7 +68,7 @@ def _parse_retry_after(value: str) -> float | None:
             return None
         if date.tzinfo is None:
             date = date.replace(tzinfo=UTC)
-        seconds = (date - datetime.now(timezone.utc)).total_seconds()
+        seconds = (date - datetime.now(UTC)).total_seconds()
     return max(0.0, seconds)
 
 
