@@ -7,12 +7,12 @@ can leave the remote outcome unknown even when an idempotency key is present.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import email.utils
 import random
 import time
-from datetime import datetime, timezone
-from typing import Callable
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import UTC, datetime
 
 TRANSIENT_STATUS_CODES = frozenset({429, 502, 503, 504})
 
@@ -67,7 +67,7 @@ def _parse_retry_after(value: str) -> float | None:
         except (TypeError, ValueError, IndexError):
             return None
         if date.tzinfo is None:
-            date = date.replace(tzinfo=timezone.utc)
+            date = date.replace(tzinfo=UTC)
         seconds = (date - datetime.now(timezone.utc)).total_seconds()
     return max(0.0, seconds)
 
