@@ -8,7 +8,8 @@ import ssl
 import time
 import urllib.error
 import urllib.request
-from typing import Any, Callable, NoReturn
+from collections.abc import Callable
+from typing import Any, NoReturn
 from urllib.parse import urlsplit
 from uuid import UUID, uuid4
 
@@ -399,6 +400,11 @@ class AgentPlatform:
         user_agent: str = "tinlance-agent-platform-sdk/0.1.0",
         retry_policy: RetryPolicy | None = None,
         telemetry: TelemetrySink | None = None,
+        credential_provider: Callable[[], str] | None = None,
+        ca_file: str | None = None,
+        client_cert: str | None = None,
+        client_key: str | None = None,
+        proxy_url: str | None = None,
     ) -> None:
         parsed_url = urlsplit(base_url)
         if parsed_url.scheme not in {"http", "https"} or not parsed_url.hostname:
