@@ -1,8 +1,8 @@
 from tinlance_agent_platform_sdk.compat import (
     DEFERRED_OPERATIONS,
     EXPECTED_SUCCESS_STATUS,
-    PUBLIC_OPERATIONS,
     PLATFORM_API_VERSION,
+    PUBLIC_OPERATIONS,
     assert_contract_integrity,
     supports_platform_api,
 )
@@ -11,7 +11,7 @@ from tinlance_agent_platform_sdk.compat import (
 def test_contract_manifest_is_disjoint_and_complete() -> None:
     assert_contract_integrity()
     assert PUBLIC_OPERATIONS.isdisjoint(DEFERRED_OPERATIONS)
-    assert PUBLIC_OPERATIONS == frozenset(EXPECTED_SUCCESS_STATUS)
+    assert frozenset(EXPECTED_SUCCESS_STATUS) == PUBLIC_OPERATIONS
 
 
 def test_supported_platform_version_is_explicit() -> None:
