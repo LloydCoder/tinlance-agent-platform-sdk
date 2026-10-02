@@ -82,3 +82,22 @@ def test_retry_call_stops_on_non_retryable_error() -> None:
             consequential=False,
             status_getter=status_getter,
         )
+
+
+def test_retry_policy_covers_all_transient_statuses() -> None:
+    policy = RetryPolicy(max_attempts=2, initial_delay=0, jitter=0)
+    for status in (429, 502, 503, 504):
+        assert policy.allows(consequential=False, status_code=status)
+    assert not policy.allows(consequential=False, status_code=500)
+
+
+def test_retry_policy_does_not_retry_consequential_without_opt_in() -> None:
+    default = RetryPolicy(max_attempts=3, initial_delay=0, jitter=0)
+    opted_in = RetryPolicy(
+        max_attempts=3,
+        initial_delay=0,
+        jitter=0,
+        retry_consequential=True,
+    )
+    assert not default.allows(consequential=True, status_code=503)
+    assert opted_in.allows(consequential=True, status_code=503)
