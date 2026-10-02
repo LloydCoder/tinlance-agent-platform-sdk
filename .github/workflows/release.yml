@@ -29,7 +29,7 @@ jobs:
         run: |
           python -m venv /tmp/sdk-release-smoke
           /tmp/sdk-release-smoke/bin/python -m pip install --no-index --find-links dist tinlance-agent-platform-sdk
-          /tmp/sdk-release-smoke/bin/python -c "import tinlance_agent_platform_sdk as sdk; print(sdk.__version__)"
+          /tmp/sdk-release-smoke/bin/python -c "import tinlance_agent_platform_sdk as sdk; print(sdk.SDK_VERSION)"
 
       - name: Validate distributions
         env:
