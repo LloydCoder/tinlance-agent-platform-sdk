@@ -1,0 +1,23 @@
+{
+  "sdk_version": "0.1.0",
+  "platform_api": ["1.1"],
+  "python": ["3.12", "3.13", "3.14"],
+  "support": {
+    "source_tests": true,
+    "wheel_install_smoke": true,
+    "sdist_build": true,
+    "sbom": true,
+    "provenance_attestation": true,
+    "dependency_audit": true,
+    "codeql": true
+  },
+  "security_regressions": [
+    "credential-provider-validation",
+    "telemetry-no-payload-export",
+    "no-authenticated-redirects",
+    "response-size-bounds",
+    "api-version-enforcement",
+    "idempotency-conflict-typing",
+    "contract-manifest-drift"
+  ]
+}
