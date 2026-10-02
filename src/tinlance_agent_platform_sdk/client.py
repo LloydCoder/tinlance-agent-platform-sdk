@@ -6,6 +6,7 @@ import json
 import re
 import urllib.error
 import urllib.request
+import time
 from typing import Any, NoReturn
 from urllib.parse import urlsplit
 from uuid import UUID, uuid4
@@ -35,6 +36,7 @@ from .models import (
     Run,
 )
 from .retry import RetryPolicy
+from .telemetry import TelemetrySink
 from .tools import ToolInvocation
 
 API_VERSION = "1.1"
@@ -395,6 +397,7 @@ class AgentPlatform:
         max_response_bytes: int = MAX_RESPONSE_BYTES,
         user_agent: str = "tinlance-agent-platform-sdk/0.1.0",
         retry_policy: RetryPolicy | None = None,
+        telemetry: TelemetrySink | None = None,
     ) -> None:
         parsed_url = urlsplit(base_url)
         if parsed_url.scheme not in {"http", "https"} or not parsed_url.hostname:
@@ -421,6 +424,7 @@ class AgentPlatform:
         self._user_agent = user_agent.strip()
         self._opener = urllib.request.build_opener(_NoRedirectHandler)
         self._retry_policy = retry_policy or RetryPolicy()
+        self._telemetry = telemetry
         self._timeout = timeout
         if api_version != API_VERSION:
             raise ValueError(f"SDK v0.1 supports Platform API version {API_VERSION} only")
