@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlsplit
@@ -17,9 +18,9 @@ class ClientConfig:
     """Immutable SDK configuration; credentials remain opaque to the SDK."""
 
     base_url: str
-    bearer_token: str
-    tenant_id: str
-    subject_id: str
+    bearer_token: str = ""
+    tenant_id: str = ""
+    subject_id: str = ""
     timeout: float = 10.0
     api_version: str = API_VERSION
     traceparent: str | None = None
@@ -30,6 +31,11 @@ class ClientConfig:
     user_agent: str = "tinlance-agent-platform-sdk/0.1.0"
     retry_policy: RetryPolicy | None = None
     telemetry: TelemetrySink | None = None
+    credential_provider: Callable[[], str] | None = None
+    ca_file: str | None = None
+    client_cert: str | None = None
+    client_key: str | None = None
+    proxy_url: str | None = None
 
     def __post_init__(self) -> None:
         parsed = urlsplit(self.base_url)
@@ -41,8 +47,14 @@ class ClientConfig:
             raise ValueError("base_url must not contain query or fragment components")
         if parsed.scheme != "https" and not self.allow_insecure_http:
             raise ValueError("base_url must use HTTPS unless allow_insecure_http=True")
-        if not self.bearer_token or any(character.isspace() for character in self.bearer_token):
-            raise ValueError("bearer_token must be non-empty and contain no whitespace")
+        if not self.bearer_token and self.credential_provider is None:
+            raise ValueError("bearer_token or credential_provider is required")
+        if self.bearer_token and any(character.isspace() for character in self.bearer_token):
+            raise ValueError("bearer_token must contain no whitespace")
+        if self.client_cert is not None and self.client_key is None:
+            raise ValueError("client_key is required when client_cert is configured")
+        if self.client_key is not None and self.client_cert is None:
+            raise ValueError("client_cert is required when client_key is configured")
         if not self.tenant_id.strip() or not self.subject_id.strip():
             raise ValueError("tenant_id and subject_id are required")
         if self.timeout <= 0:
@@ -83,4 +95,9 @@ class ClientConfig:
             "user_agent": self.user_agent,
             "retry_policy": self.retry_policy,
             "telemetry": self.telemetry,
+            "credential_provider": self.credential_provider,
+            "ca_file": self.ca_file,
+            "client_cert": self.client_cert,
+            "client_key": self.client_key,
+            "proxy_url": self.proxy_url,
         }
