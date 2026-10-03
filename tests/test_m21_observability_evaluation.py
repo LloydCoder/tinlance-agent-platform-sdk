@@ -39,4 +39,19 @@ def test_evaluation_reference_validation_is_fail_closed() -> None:
     with pytest.raises(ValueError):
         EvaluationCase("", "1", "invalid")
     with pytest.raises(ValueError):
-        EvaluationAssertion("")
+        EvaluationAssertion("", None)
+
+    with pytest.raises(ValueError):
+        EvaluationAssertion("valid", None, "")
+
+    with pytest.raises(ValueError):
+        EvaluationCase("case", "1", "name", ("",))
+
+    with pytest.raises(ValueError):
+        EvaluationResult("", "unknown")
+
+    with pytest.raises(ValueError):
+        EvaluationResult("case", "unknown", evidence_references=("",))
+
+    with pytest.raises(ValueError):
+        EvaluationResult("case", "unknown", trace_references=("",))
