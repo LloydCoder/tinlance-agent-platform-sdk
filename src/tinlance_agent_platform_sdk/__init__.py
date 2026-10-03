@@ -41,6 +41,7 @@ from .errors import (
     TransportError,
     UnsupportedMediaTypeError,
 )
+from .evaluation import EvaluationAssertion, EvaluationCase, EvaluationResult
 from .idempotency import IdempotencyKey
 from .lifecycle import is_approval_terminal, is_execution_terminal, is_run_terminal
 from .mcp import MCPAuthMetadata, MCPServerSpec, MCPToolRef, MCPTransportSpec
@@ -58,13 +59,16 @@ from .models import (
 )
 from .research import ResearchAgent, ResearchRequest, ResearchRun
 from .retry import RetryPolicy
-from .telemetry import TelemetrySink
+from .telemetry import TelemetrySink, safe_attributes
 from .tools import ToolContractRegistry, ToolDescriptor, ToolInvocation, ToolResult
 
 __all__ = [
     "AgentPlatform",
     "AsyncAgentPlatform",
     "AgentScaffold",
+    "EvaluationAssertion",
+    "EvaluationCase",
+    "EvaluationResult",
     "MCPAuthMetadata",
     "MCPServerSpec",
     "MCPToolRef",
@@ -119,6 +123,7 @@ __all__ = [
     "ToolInvocation",
     "ToolResult",
     "TelemetrySink",
+    "safe_attributes",
     "SdkError",
     "TransportError",
     "UnsupportedMediaTypeError",
