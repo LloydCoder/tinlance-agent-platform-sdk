@@ -3,9 +3,7 @@ from pathlib import Path
 
 
 def test_m21_6_security_matrix_is_complete_and_executable() -> None:
-    matrix = json.loads(
-        Path("docs/security/m21-6-control-matrix.json").read_text(encoding="utf-8")
-    )
+    matrix = json.loads(Path("docs/security/m21-6-control-matrix.json").read_text(encoding="utf-8"))
     controls = matrix["controls"]
     assert len(controls) >= 14
     assert all(item["status"] == "verified" for item in controls)
