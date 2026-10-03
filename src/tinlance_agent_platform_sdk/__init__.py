@@ -59,7 +59,7 @@ from .models import (
 )
 from .research import ResearchAgent, ResearchRequest, ResearchRun
 from .retry import RetryPolicy
-from .telemetry import TelemetrySink
+from .telemetry import TelemetrySink, safe_attributes
 from .tools import ToolContractRegistry, ToolDescriptor, ToolInvocation, ToolResult
 
 __all__ = [
@@ -123,6 +123,7 @@ __all__ = [
     "ToolInvocation",
     "ToolResult",
     "TelemetrySink",
+    "safe_attributes",
     "SdkError",
     "TransportError",
     "UnsupportedMediaTypeError",
