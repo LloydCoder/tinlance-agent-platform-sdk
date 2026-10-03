@@ -1,7 +1,6 @@
 import json
-from pathlib import Path
-
 import tomllib
+from pathlib import Path
 
 import tinlance_agent_platform_sdk as sdk
 
