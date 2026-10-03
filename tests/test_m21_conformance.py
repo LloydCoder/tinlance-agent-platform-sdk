@@ -27,7 +27,9 @@ class ConformanceServer:
             def do_POST(self) -> None:  # noqa: N802
                 length = int(self.headers["Content-Length"])
                 body = json.loads(self.rfile.read(length))
-                parent.requests.append((body, {k.lower(): v for k, v in self.headers.items()}))
+                parent.requests.append(
+                    (body, {k.lower(): v for k, v in self.headers.items()})
+                )
                 response = parent.response(body["operation"])
                 raw = json.dumps(response).encode()
                 self.send_response(200)
@@ -49,35 +51,86 @@ class ConformanceServer:
         payloads: dict[str, object] = {
             "health": {"ready": True},
             "principal.get": {"user_id": SUBJECT},
-            "agents.list": {"agents": [{"agent_id": str(AGENT), "name": "conformance", "version": "1.0.0"}]},
-            "capabilities.list": {"capabilities": [{"capability_id": "repository.read"}]},
-            "runs.create": {"run_id": str(RUN), "task_id": str(TASK), "state": "running", "agent_id": str(AGENT)},
-            "runs.cancel": {"run_id": str(RUN), "task_id": str(TASK), "state": "cancelled", "agent_id": str(AGENT)},
+            "agents.list": {
+                "agents": [
+                    {
+                        "agent_id": str(AGENT),
+                        "name": "conformance",
+                        "version": "1.0.0",
+                    }
+                ]
+            },
+            "capabilities.list": {
+                "capabilities": [{"capability_id": "repository.read"}]
+            },
+            "runs.create": {
+                "run_id": str(RUN),
+                "task_id": str(TASK),
+                "state": "running",
+                "agent_id": str(AGENT),
+            },
+            "runs.cancel": {
+                "run_id": str(RUN),
+                "task_id": str(TASK),
+                "state": "cancelled",
+                "agent_id": str(AGENT),
+            },
             "approvals.request": {"approval_id": str(APPROVAL)},
-            "approvals.decide": {"approval_id": str(APPROVAL), "state": "approved"},
+            "approvals.decide": {
+                "approval_id": str(APPROVAL),
+                "state": "approved",
+            },
             "tools.execute": {
-                "execution_id": str(EXECUTION), "state": "completed", "output": "ok",
-                "evidence_ids": [str(EVIDENCE)], "audit_event_ids": [str(EVENT)],
-                "error_code": None, "retryable": False,
+                "execution_id": str(EXECUTION),
+                "state": "completed",
+                "output": "ok",
+                "evidence_ids": [str(EVIDENCE)],
+                "audit_event_ids": [str(EVENT)],
+                "error_code": None,
+                "retryable": False,
             },
             "executions.get": {
-                "execution_id": str(EXECUTION), "state": "completed", "output": "ok",
-                "evidence_ids": [str(EVIDENCE)], "audit_event_ids": [str(EVENT)],
-                "error_code": None, "retryable": False,
+                "execution_id": str(EXECUTION),
+                "state": "completed",
+                "output": "ok",
+                "evidence_ids": [str(EVIDENCE)],
+                "audit_event_ids": [str(EVENT)],
+                "error_code": None,
+                "retryable": False,
             },
-            "runs.events": {"events": [{
-                "event_id": str(EVENT), "event_type": "run.created",
-                "occurred_at": "2026-10-03T00:00:00+00:00", "request_id": "r",
-                "correlation_id": "r", "workspace_id": TENANT, "task_id": str(TASK),
-                "agent_id": str(AGENT), "platform_run_id": str(RUN), "payload": {},
-            }]},
-            "runs.evidence": {"evidence": [{"evidence_id": str(EVIDENCE)}]},
+            "runs.events": {
+                "events": [
+                    {
+                        "event_id": str(EVENT),
+                        "event_type": "run.created",
+                        "occurred_at": "2026-10-03T00:00:00+00:00",
+                        "request_id": "r",
+                        "correlation_id": "r",
+                        "workspace_id": TENANT,
+                        "task_id": str(TASK),
+                        "agent_id": str(AGENT),
+                        "platform_run_id": str(RUN),
+                        "payload": {},
+                    }
+                ]
+            },
+            "runs.evidence": {
+                "evidence": [{"evidence_id": str(EVIDENCE)}]
+            },
         }
         expected = {
-            "health": "ok", "principal.get": "ok", "agents.list": "ok", "capabilities.list": "ok",
-            "runs.create": "accepted", "runs.cancel": "accepted", "approvals.request": "accepted",
-            "approvals.decide": "accepted", "tools.execute": "accepted", "executions.get": "ok",
-            "runs.events": "ok", "runs.evidence": "ok",
+            "health": "ok",
+            "principal.get": "ok",
+            "agents.list": "ok",
+            "capabilities.list": "ok",
+            "runs.create": "accepted",
+            "runs.cancel": "accepted",
+            "approvals.request": "accepted",
+            "approvals.decide": "accepted",
+            "tools.execute": "accepted",
+            "executions.get": "ok",
+            "runs.events": "ok",
+            "runs.evidence": "ok",
         }
         return {"status": expected[operation], "payload": payloads[operation]}
 
@@ -107,17 +160,31 @@ def test_m21_1_all_public_operations_round_trip() -> None:
         assert sdk.capabilities.list(AGENT)[0].capability_id == "repository.read"
         assert sdk.runs.create(TASK, AGENT, "conformance").run_id == RUN
         assert sdk.runs.cancel(RUN).state == "cancelled"
-        assert sdk.approvals.request(RUN, "test.action", "resource", "conformance").approval_id == APPROVAL
+        approval = sdk.approvals.request(
+            RUN, "test.action", "resource", "conformance"
+        )
+        assert approval.approval_id == APPROVAL
         assert sdk.approvals.decide(APPROVAL, True).state == "approved"
-        invocation = ToolInvocation("repository.read", "repository.read", "inspect", "repo:x", {})
+        invocation = ToolInvocation(
+            "repository.read", "repository.read", "inspect", "repo:x", {}
+        )
         assert sdk.tools.execute(RUN, AGENT, invocation).execution_id == EXECUTION
         assert sdk.executions.get(EXECUTION).execution_id == EXECUTION
         assert sdk.runs.events(RUN)[0].event_id == EVENT
         assert sdk.runs.evidence(RUN)[0].evidence_id == EVIDENCE
         assert [body["operation"] for body, _ in server.requests] == [
-            "health", "principal.get", "agents.list", "capabilities.list", "runs.create",
-            "runs.cancel", "approvals.request", "approvals.decide", "tools.execute",
-            "executions.get", "runs.events", "runs.evidence",
+            "health",
+            "principal.get",
+            "agents.list",
+            "capabilities.list",
+            "runs.create",
+            "runs.cancel",
+            "approvals.request",
+            "approvals.decide",
+            "tools.execute",
+            "executions.get",
+            "runs.events",
+            "runs.evidence",
         ]
     finally:
         server.close()
@@ -127,24 +194,53 @@ def test_m21_1_r10_wire_contract_is_explicit() -> None:
     server = ConformanceServer()
     try:
         sdk = client(server)
-        invocation = ToolInvocation("repository.read", "repository.read", "inspect", "repo:x", {"depth": 1})
+        invocation = ToolInvocation(
+            "repository.read",
+            "repository.read",
+            "inspect",
+            "repo:x",
+            {"depth": 1},
+        )
         sdk.tools.execute(
-            RUN, AGENT, invocation, capability_version="2", tool_version="7",
-            requested_timeout_seconds=12, requested_tool_calls=3, risk="high",
-            reversibility="irreversible", data_class="restricted", blast_radius="tenant",
-            sandbox_required=True, evidence_required=True, request_id="r10-request",
+            RUN,
+            AGENT,
+            invocation,
+            capability_version="2",
+            tool_version="7",
+            requested_timeout_seconds=12,
+            requested_tool_calls=3,
+            risk="high",
+            reversibility="irreversible",
+            data_class="restricted",
+            blast_radius="tenant",
+            sandbox_required=True,
+            evidence_required=True,
+            request_id="r10-request",
             idempotency_key="r10-key",
         )
         body, headers = server.requests[-1]
         assert body == {
-            "tenant_id": TENANT, "subject_id": SUBJECT, "operation": "tools.execute",
+            "tenant_id": TENANT,
+            "subject_id": SUBJECT,
+            "operation": "tools.execute",
             "payload": {
-                "contract_version": "governed-execution.v1", "run_id": str(RUN),
-                "agent_id": str(AGENT), "capability_id": "repository.read", "capability_version": "2",
-                "tool_name": "repository.read", "tool_version": "7", "action": "inspect",
-                "resource": "repo:x", "input": {"depth": 1}, "requested_timeout_seconds": 12,
-                "requested_tool_calls": 3, "risk": "high", "reversibility": "irreversible",
-                "data_class": "restricted", "blast_radius": "tenant", "sandbox_required": True,
+                "contract_version": "governed-execution.v1",
+                "run_id": str(RUN),
+                "agent_id": str(AGENT),
+                "capability_id": "repository.read",
+                "capability_version": "2",
+                "tool_name": "repository.read",
+                "tool_version": "7",
+                "action": "inspect",
+                "resource": "repo:x",
+                "input": {"depth": 1},
+                "requested_timeout_seconds": 12,
+                "requested_tool_calls": 3,
+                "risk": "high",
+                "reversibility": "irreversible",
+                "data_class": "restricted",
+                "blast_radius": "tenant",
+                "sandbox_required": True,
                 "evidence_required": True,
             },
         }
