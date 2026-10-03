@@ -1,4 +1,4 @@
-from uuid import uuid4
+import pytest
 
 from tinlance_agent_platform_sdk import (
     AgentSpec,
@@ -63,24 +63,11 @@ def test_agent_spec_serializes_declarative_developer_surface() -> None:
 
 
 def test_agent_spec_validation_rejects_blank_declarative_fields() -> None:
-    try:
+    with pytest.raises(ValueError):
         ModelSpec("", "model")
-        raise AssertionError("blank provider must fail")
-    except ValueError:
-        pass
 
-    try:
+    with pytest.raises(ValueError):
         GuardrailSpec("guardrail", "", "enforce")
-        raise AssertionError("blank guardrail kind must fail")
-    except ValueError:
-        pass
 
-    try:
+    with pytest.raises(ValueError):
         ObservabilitySpec(attributes=(("", "value"),))
-        raise AssertionError("blank observability attribute key must fail")
-    except ValueError:
-        pass
-
-
-def test_agent_scaffold_still_requires_platform_issued_ids() -> None:
-    assert uuid4() is not None
