@@ -1,6 +1,13 @@
 """Public client SDK for the Tinlance Agent Platform API v1.1."""
 
-from .agent import AgentScaffold, AgentSpec
+from .agent import (
+    AgentScaffold,
+    AgentSpec,
+    GuardrailSpec,
+    LifecycleSpec,
+    ModelSpec,
+    ObservabilitySpec,
+)
 from .approval import ApprovalWorkflow
 from .async_client import AsyncAgentPlatform
 from .client import AgentPlatform
@@ -58,6 +65,10 @@ __all__ = [
     "AsyncAgentPlatform",
     "AgentScaffold",
     "AgentSpec",
+    "ModelSpec",
+    "GuardrailSpec",
+    "LifecycleSpec",
+    "ObservabilitySpec",
     "ApprovalWorkflow",
     "Agent",
     "ClientConfig",
