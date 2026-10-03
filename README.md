@@ -43,6 +43,20 @@ The wire endpoint is exactly:
 
 The SDK does not fabricate resource-oriented REST endpoints.
 
+## M21 Enterprise Developer Surface
+
+The final M21 program adds declarative developer contracts for agent metadata, MCP integration, safe observability and evaluation references, while keeping execution authority in the Platform.
+
+- M21.1 — Platform API and R10 wire conformance
+- M21.2 — Agent Developer Surface
+- M21.3 — Durable run lifecycle readiness gate
+- M21.4 — MCP and tooling integration metadata
+- M21.5 — Observability and evaluation references
+- M21.6 — Security and supply-chain certification matrix
+- M21.7 — Enterprise release and certification
+
+These surfaces do not create a second runtime, policy engine, secrets manager, sandbox, MCP runtime, or evaluation authority. See the phase documents under docs/M21*.md.
+
 ## Installation
 
 ```bash
