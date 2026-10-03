@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "phase": "M21.6",
+  "scope": "SDK developer surface and release artifact",
+  "controls": [
+    {"id":"SEC-01","control":"credential isolation","verification":"test_enterprise_credentials.py","status":"verified"},
+    {"id":"SEC-02","control":"tenant and principal binding","verification":"test_m21_conformance.py","status":"verified"},
+    {"id":"SEC-03","control":"authorization fail-closed boundary","verification":"docs/M21.1.md","status":"verified"},
+    {"id":"SEC-04","control":"approval fail-closed boundary","verification":"test_m21_mcp_surface.py","status":"verified"},
+    {"id":"SEC-05","control":"redirect and endpoint validation","verification":"test_client_security.py","status":"verified"},
+    {"id":"SEC-06","control":"response-size and timeout protection","verification":"test_client_security.py","status":"verified"},
+    {"id":"SEC-07","control":"idempotency conflict and retry safety","verification":"test_m21_conformance.py","status":"verified"},
+    {"id":"SEC-08","control":"telemetry payload minimization","verification":"test_m21_observability_evaluation.py","status":"verified"},
+    {"id":"SEC-09","control":"sensitive error redaction","verification":"test_errors.py","status":"verified"},
+    {"id":"SEC-10","control":"dependency audit and SBOM","verification":".github/workflows/ci.yml","status":"verified"},
+    {"id":"SEC-11","control":"artifact provenance","verification":".github/workflows/release.yml","status":"verified"},
+    {"id":"SEC-12","control":"CodeQL static analysis","verification":".github/workflows/security.yml","status":"verified"},
+    {"id":"SEC-13","control":"API-version enforcement","verification":"test_contract_manifest.py","status":"verified"},
+    {"id":"SEC-14","control":"contract drift detection","verification":"test_contract_manifest.py","status":"verified"}
+  ],
+  "release_requirements": [
+    "all controls verified",
+    "source quality matrix green",
+    "security workflow green",
+    "package smoke green",
+    "artifact provenance enabled",
+    "fresh-environment installation verified"
+  ]
+}
