@@ -10,6 +10,7 @@
 - Added enterprise credential rotation, custom CA, mTLS and proxy configuration.
 - Added compatibility/security matrices, SBOM/provenance release controls and artifact smoke testing.
 - Added safe local diagnostics through the `tinlance-agent-sdk` command.
+- Added M21.1–M21.7 enterprise conformance, declarative agent, MCP, observability/evaluation, security certification and release gates.
 - Reconciled public documentation with the Platform authority boundary.
 
 ## 0.1.0
