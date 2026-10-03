@@ -110,7 +110,7 @@ class ConformanceServer:
                     }
                 ]
             },
-            "runs.evidence": {"evidence": [{"evidence_id": str(EVIDENCE)]},
+            "runs.evidence": {"evidence": [{"evidence_id": str(EVIDENCE)}]},
         }
         expected = {
             "health": "ok",
