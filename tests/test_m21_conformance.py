@@ -27,9 +27,7 @@ class ConformanceServer:
             def do_POST(self) -> None:  # noqa: N802
                 length = int(self.headers["Content-Length"])
                 body = json.loads(self.rfile.read(length))
-                parent.requests.append(
-                    (body, {k.lower(): v for k, v in self.headers.items()})
-                )
+                parent.requests.append((body, {k.lower(): v for k, v in self.headers.items()}))
                 response = parent.response(body["operation"])
                 raw = json.dumps(response).encode()
                 self.send_response(200)
@@ -60,9 +58,7 @@ class ConformanceServer:
                     }
                 ]
             },
-            "capabilities.list": {
-                "capabilities": [{"capability_id": "repository.read"}]
-            },
+            "capabilities.list": {"capabilities": [{"capability_id": "repository.read"}]},
             "runs.create": {
                 "run_id": str(RUN),
                 "task_id": str(TASK),
@@ -114,9 +110,7 @@ class ConformanceServer:
                     }
                 ]
             },
-            "runs.evidence": {
-                "evidence": [{"evidence_id": str(EVIDENCE)}]
-            },
+            "runs.evidence": {"evidence": [{"evidence_id": str(EVIDENCE)]},
         }
         expected = {
             "health": "ok",
@@ -160,14 +154,10 @@ def test_m21_1_all_public_operations_round_trip() -> None:
         assert sdk.capabilities.list(AGENT)[0].capability_id == "repository.read"
         assert sdk.runs.create(TASK, AGENT, "conformance").run_id == RUN
         assert sdk.runs.cancel(RUN).state == "cancelled"
-        approval = sdk.approvals.request(
-            RUN, "test.action", "resource", "conformance"
-        )
+        approval = sdk.approvals.request(RUN, "test.action", "resource", "conformance")
         assert approval.approval_id == APPROVAL
         assert sdk.approvals.decide(APPROVAL, True).state == "approved"
-        invocation = ToolInvocation(
-            "repository.read", "repository.read", "inspect", "repo:x", {}
-        )
+        invocation = ToolInvocation("repository.read", "repository.read", "inspect", "repo:x", {})
         assert sdk.tools.execute(RUN, AGENT, invocation).execution_id == EXECUTION
         assert sdk.executions.get(EXECUTION).execution_id == EXECUTION
         assert sdk.runs.events(RUN)[0].event_id == EVENT
