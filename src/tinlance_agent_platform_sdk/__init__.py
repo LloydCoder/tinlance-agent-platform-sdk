@@ -43,6 +43,7 @@ from .errors import (
 )
 from .idempotency import IdempotencyKey
 from .lifecycle import is_approval_terminal, is_execution_terminal, is_run_terminal
+from .mcp import MCPAuthMetadata, MCPServerSpec, MCPToolRef, MCPTransportSpec
 from .models import (
     Agent,
     ApprovalDecision,
@@ -64,6 +65,10 @@ __all__ = [
     "AgentPlatform",
     "AsyncAgentPlatform",
     "AgentScaffold",
+    "MCPAuthMetadata",
+    "MCPServerSpec",
+    "MCPToolRef",
+    "MCPTransportSpec",
     "AgentSpec",
     "ModelSpec",
     "GuardrailSpec",
