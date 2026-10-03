@@ -55,7 +55,7 @@ The final M21 program adds declarative developer contracts for agent metadata, M
 - M21.6 — Security and supply-chain certification matrix
 - M21.7 — Enterprise release and certification
 
-These surfaces do not create a second runtime, policy engine, secrets manager, sandbox, MCP runtime, or evaluation authority. See the phase documents under docs/M21*.md.
+These surfaces do not create a second runtime, policy engine, secrets manager, sandbox, MCP runtime, or evaluation authority. See the consolidated [M21 final program](docs/M21.md) and the phase documents under docs/M21*.md.
 
 ## Installation
 
