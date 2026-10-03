@@ -41,9 +41,9 @@ from .errors import (
     TransportError,
     UnsupportedMediaTypeError,
 )
+from .evaluation import EvaluationAssertion, EvaluationCase, EvaluationResult
 from .idempotency import IdempotencyKey
 from .lifecycle import is_approval_terminal, is_execution_terminal, is_run_terminal
-from .evaluation import EvaluationAssertion, EvaluationCase, EvaluationResult
 from .mcp import MCPAuthMetadata, MCPServerSpec, MCPToolRef, MCPTransportSpec
 from .models import (
     Agent,
