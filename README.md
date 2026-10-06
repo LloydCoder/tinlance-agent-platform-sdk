@@ -27,6 +27,10 @@ flowchart LR
     C --> E[Policy / approvals]
     C --> F[Governed execution / tools]
     C --> G[Evidence / audit]
+    X[Ecosystem Conformance] -. verifies .-> D
+    X -. verifies .-> O
+    X -. verifies .-> B
+    X -. verifies .-> C
 ~~~
 
 The SDK exposes typed contracts and safe client-side composition without creating a second runtime or authority plane.
