@@ -6,7 +6,6 @@
 
 [![CI](https://github.com/LloydCoder/tinlance-agent-platform-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/LloydCoder/tinlance-agent-platform-sdk/actions/workflows/ci.yml)
 [![Security](https://github.com/LloydCoder/tinlance-agent-platform-sdk/actions/workflows/security.yml/badge.svg)](https://github.com/LloydCoder/tinlance-agent-platform-sdk/actions/workflows/security.yml)
-[![PyPI](https://img.shields.io/pypi/v/tinlance-agent-platform-sdk)](https://pypi.org/project/tinlance-agent-platform-sdk/)
 [![License](https://img.shields.io/github/license/LloydCoder/tinlance-agent-platform-sdk)](LICENSE)
 
 </div>
@@ -48,10 +47,12 @@ This separation keeps the public SDK independently installable while preventing 
 
 ## Quick Start
 
-### 1. Install
+### 1. Clone and install
 
 ~~~bash
-python -m pip install tinlance-agent-platform-sdk
+git clone https://github.com/LloydCoder/tinlance-agent-platform-sdk.git
+cd tinlance-agent-platform-sdk
+python -m pip install -e .
 ~~~
 
 ### 2. Verify the installed package
@@ -86,10 +87,12 @@ print(health.ready)
 - Python 3.12, 3.13, or 3.14.
 - Network access to a compatible Tinlance Agent Platform API 1.1 deployment when making remote calls.
 
-**PyPI**
+**From source**
 
 ~~~bash
-python -m pip install tinlance-agent-platform-sdk
+git clone https://github.com/LloydCoder/tinlance-agent-platform-sdk.git
+cd tinlance-agent-platform-sdk
+python -m pip install .
 ~~~
 
 **Editable development install**
@@ -98,7 +101,7 @@ python -m pip install tinlance-agent-platform-sdk
 python -m pip install -e ".[test,security]"
 ~~~
 
-The package has no mandatory runtime dependencies.
+The package has no mandatory runtime dependencies. A GitHub release is not currently published; use the source installation above until the first PyPI release is announced.
 
 ## Usage
 
