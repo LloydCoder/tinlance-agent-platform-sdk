@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+title: "Tinlance Agent Platform SDK"
+message: "If you use this software in research or published technical work, please cite the repository."
+type: software
+authors:
+  - name: "Tinlance Limited"
+version: "1.0.0"
+date-released: "2026-10-03"
+license: "Apache-2.0"
+repository-code: "https://github.com/LloydCoder/tinlance-agent-platform-sdk"
+url: "https://github.com/LloydCoder/tinlance-agent-platform-sdk"
+keywords:
+  - AI agents
+  - agent SDK
+  - governed execution
+  - Python
