@@ -1,0 +1,8 @@
+# Default ownership for the external Agent Developer Surface.
+* @LloydCoder
+
+# Keep repository governance and security under explicit maintainer ownership.
+/.github/ @LloydCoder
+/.github/CODEOWNERS @LloydCoder
+/SECURITY.md @LloydCoder
+/CODE_OF_CONDUCT.md @LloydCoder

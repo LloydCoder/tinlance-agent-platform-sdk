@@ -1,53 +1,65 @@
-# Python bytecode and caches
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache/
+.mypy_cache/
+.pyre/
+.pytype/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+junit.xml
+
 # Packaging
 build/
 dist/
 *.egg-info/
 .eggs/
 .wheels/
+
 # Virtual environments
 .venv/
 venv/
 env/
 ENV/
 .conda/
-# Test and type-check artifacts
-.pytest_cache/
-.coverage
-.coverage.*
-htmlcov/
-.tox/
-.nox/
-.mypy_cache/
-.pyre/
-.pytype/
-.ruff_cache/
-coverage.xml
-junit.xml
-# Documentation builds
-docs/_build/
-# IDE/editor
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-# OS
-.DS_Store
-Thumbs.db
-# Local environment and secrets
+
+# Local configuration and secrets
 .env
 .env.*
 !.env.example
 *.local
 *.secret
-# Logs and local scratch
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+
+# Logs and scratch
 *.log
 tmp/
 temp/
 scratch/
+
+# Documentation builds
+docs/_build/
+
+# Editors and IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
 # Jupyter
 .ipynb_checkpoints/
