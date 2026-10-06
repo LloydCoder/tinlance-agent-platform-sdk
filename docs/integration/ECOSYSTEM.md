@@ -48,3 +48,8 @@ M13.6–M13.8 reconciliation: the SDK exposes consumer metadata/contracts only. 
 ## M13.5 tool authority reconciliation
 
 The SDK may model tool invocation metadata and permits, but it never creates or validates execution authority. Consequential tool execution is authorized by Platform-issued permits after Platform policy evaluation; local SDK metadata is not authority.
+
+
+## M13.6 — Secrets and credential governance
+
+M13.6 secret governance: only execution-scoped secret handles are valid; tenant, principal, agent, execution, capability, purpose, audience and time are enforced by Platform. The legacy unscoped broker fails closed.
