@@ -40,3 +40,7 @@ Consequential execution budget is Platform authority. Requests may carry declare
 ## M13.5 tool authority reconciliation
 
 The SDK may model tool invocation metadata and permits, but it never creates or validates execution authority. Consequential tool execution is authorized by Platform-issued permits after Platform policy evaluation; local SDK metadata is not authority.
+
+## M13.6–M13.8 production-runtime reconciliation
+
+M13.6–M13.8 reconciliation: the SDK exposes consumer metadata/contracts only. Secret handles, evidence/audit attestations and observability identifiers do not confer authority. Platform remains the sole authority plane; external secret/KMS/telemetry providers remain deployment adapters.
