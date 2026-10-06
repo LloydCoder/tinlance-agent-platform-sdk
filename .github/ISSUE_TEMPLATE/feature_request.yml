@@ -1,0 +1,51 @@
+name: Feature Request
+description: Propose a focused improvement to the Tinlance Agent Platform SDK.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        SDK features must preserve the boundary where the Agent Platform remains
+        authoritative for identity, policy, approvals, execution, secrets, sandboxing,
+        and evidence.
+  - type: checkboxes
+    id: searched
+    attributes:
+      label: Existing issue check
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What developer problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API or behavior
+      description: Describe the smallest useful public surface.
+    validations:
+      required: true
+  - type: textarea
+    id: contract
+    attributes:
+      label: Platform contract
+      description: Identify the existing or proposed versioned Platform contract that authorizes the change.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: conduct
+    attributes:
+      label: Community standards
+      options:
+        - label: I agree to follow the project's Code of Conduct.
+          required: true
