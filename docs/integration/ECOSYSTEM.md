@@ -53,3 +53,8 @@ The SDK may model tool invocation metadata and permits, but it never creates or 
 ## M13.6 — Secrets and credential governance
 
 M13.6 secret governance: only execution-scoped secret handles are valid; tenant, principal, agent, execution, capability, purpose, audience and time are enforced by Platform. The legacy unscoped broker fails closed.
+
+
+## M13.7 — Evidence, audit and non-repudiation
+
+M13.7 evidence/audit boundary: SDK provenance metadata is non-authoritative. Platform evidence and audit records are tenant/run scoped, integrity-protected, and optionally attested; SDK cannot mint or validate authority from telemetry or evidence.
