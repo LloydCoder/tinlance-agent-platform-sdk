@@ -31,6 +31,8 @@ flowchart LR
 
 The SDK exposes typed contracts and safe client-side composition without creating a second runtime or authority plane.
 
+The ecosystem conformance gate maintained by TADL verifies this SDK against the same Platform reference boundary used by Agent OS. See [Ecosystem conformance](docs/integration/CONFORMANCE.md).
+
 ## Why this SDK
 
 | Concern | SDK | Platform |
