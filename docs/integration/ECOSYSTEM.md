@@ -58,3 +58,8 @@ M13.6 secret governance: only execution-scoped secret handles are valid; tenant,
 ## M13.7 — Evidence, audit and non-repudiation
 
 M13.7 evidence/audit boundary: SDK provenance metadata is non-authoritative. Platform evidence and audit records are tenant/run scoped, integrity-protected, and optionally attested; SDK cannot mint or validate authority from telemetry or evidence.
+
+
+## M13.8 — Observability and incident correlation
+
+M13.8 observability boundary: SDK trace and telemetry identifiers are correlation metadata only. Platform owns security-event correlation and incident context; telemetry never grants authority or bypasses policy.
