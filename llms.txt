@@ -1,0 +1,35 @@
+# Tinlance Agent Platform SDK
+
+> Official Python developer SDK for building agents against the Tinlance Agent Platform's versioned, governed execution boundary. The SDK is a thin client contract layer; identity, tenant authority, authorization, policy, approvals, secrets, sandboxing, execution, and evidence authority remain in the Platform.
+
+Use the links below to locate the authoritative source for each question. Prefer the contract and API documentation over inferred behavior.
+
+## Getting started
+
+- [README](https://github.com/LloydCoder/tinlance-agent-platform-sdk/blob/main/README.md): Installation, quick start, architecture boundary, supported Python versions, and public SDK surface.
+- [Async example](https://github.com/LloydCoder/tinlance-agent-platform-sdk/blob/main/examples/basic_async.py): Minimal asynchronous client example.
+
+## API and contracts
+
+- [SDK v1.0 contract](https://github.com/LloydCoder/tinlance-agent-platform-sdk/blob/main/docs/contracts/SDK-V1.0-CONTRACT.md): Public SDK contract for the current release.
+- [Contract manifest](https://github.com/LloydCoder/tinlance-agent-platform-sdk/blob/main/docs/contracts/sdk-contract-manifest.json): Machine-readable operation and compatibility manifest.
+- [Compatibility matrix](https://github.com/LloydCoder/tinlance-agent-platform-sdk/blob/main/docs/contracts/compatibility-matrix.json): Supported Platform/API compatibility information.
+- [M21 program](https://github.com/LloydCoder/tinlance-agent-platform-sdk/blob/main/docs/M21.md): Enterprise developer-surface and certification program.
+- [M12–M20 program](https://github.com/LloydCoder/tinlance-agent-platform-sdk/blob/main/docs/M12-M20.md): Contract governance, resilience, readiness, observability, credentials, and GA documentation.
+
+## Architecture and security
+
+- [Documentation index](https://github.com/LloydCoder/tinlance-agent-platform-sdk/blob/main/docs/README.md): Diátaxis-oriented navigation and repository documentation map.
+- [Security policy](https://github.com/LloydCoder/tinlance-agent-platform-sdk/blob/main/SECURITY.md): Vulnerability reporting, security boundary, and supply-chain controls.
+- [M0 transport hardening](https://github.com/LloydCoder/tinlance-agent-platform-sdk/blob/main/docs/M0.md): Transport and response-validation acceptance gates.
+
+## Development
+
+- [Contributing](https://github.com/LloydCoder/tinlance-agent-platform-sdk/blob/main/CONTRIBUTING.md): Development setup, architectural rules, testing, and pull requests.
+- [Changelog](https://github.com/LloydCoder/tinlance-agent-platform-sdk/blob/main/CHANGELOG.md): Release history.
+- [Tests](https://github.com/LloydCoder/tinlance-agent-platform-sdk/tree/main/tests): Executable contract and quality coverage.
+- [Examples](https://github.com/LloydCoder/tinlance-agent-platform-sdk/tree/main/examples): Runnable SDK examples.
+
+## Optional
+
+- [Platform repository](https://github.com/LloydCoder/tinlance-agent-platform): Server-side authority and R10 contract source.
