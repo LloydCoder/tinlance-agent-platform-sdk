@@ -4,12 +4,13 @@ The Platform SDK is the typed client boundary between Agent OS/application code 
 
 ```mermaid
 flowchart LR
-    D[Tinlance Agent Developer] --> O[Tinlance Agent OS]
+    D[Tinlance Agent Developer / TADL] --> O[Tinlance Agent OS]
     O --> S[Tinlance Agent Platform SDK]
-    A[Direct agent application] --> S
     S --> P[Tinlance Agent Platform]
-    P --> X[Governed execution]
-    P --> V[Evidence + audit]
+    P --> A[Identity / tenancy]
+    P --> Z[Authorization / policy / approvals]
+    P --> X[Budgets / sandbox / tools / MCP]
+    P --> V[Evidence / audit / observability]
     C[Ecosystem Conformance] -. gates .-> D
     C -. gates .-> O
     C -. gates .-> S
