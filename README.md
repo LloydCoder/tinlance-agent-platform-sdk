@@ -1,71 +1,68 @@
 # Tinlance Agent Platform SDK
 
-Official developer SDK for building secure, governed AI agents on the Tinlance Agent Platform.
+<div align="center">
+
+**A typed Python developer surface for building agents against the Tinlance Agent Platform's governed execution boundary.**
 
 [![CI](https://github.com/LloydCoder/tinlance-agent-platform-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/LloydCoder/tinlance-agent-platform-sdk/actions/workflows/ci.yml)
+[![Security](https://github.com/LloydCoder/tinlance-agent-platform-sdk/actions/workflows/security.yml/badge.svg)](https://github.com/LloydCoder/tinlance-agent-platform-sdk/actions/workflows/security.yml)
+[![PyPI](https://img.shields.io/pypi/v/tinlance-agent-platform-sdk)](https://pypi.org/project/tinlance-agent-platform-sdk/)
+[![License](https://img.shields.io/github/license/LloydCoder/tinlance-agent-platform-sdk)](LICENSE)
 
-## Overview
+</div>
 
-The Tinlance Agent Platform SDK is the external, consumer-facing Python client for the Tinlance Agent Platform's versioned HTTP boundary.
+> [!NOTE]
+> The SDK is a client contract layer. The Tinlance Agent Platform remains authoritative for identity, tenant binding, authorization, policy, approvals, secrets, sandboxing, execution, and evidence.
 
-It is deliberately a **thin contract layer**, not a second agent runtime or authority engine. The Platform remains authoritative for identity verification, tenant binding, authorization, policy, approvals, tool permissions, secrets, sandboxing, evidence validity, and execution.
+## Visual proof
 
-The SDK is independent of the Platform repository and does not import Platform implementation packages.
+The executable architecture is intentionally simple:
 
-## Official Agent Developer Surface
+~~~mermaid
+flowchart LR
+    A[Agent application] --> B[Tinlance Agent Platform SDK]
+    B -->|versioned HTTP contract| C[Tinlance Agent Platform]
+    C --> D[Identity / tenant authority]
+    C --> E[Policy / approvals]
+    C --> F[Governed execution / tools]
+    C --> G[Evidence / audit]
+~~~
 
-This repository is the official external developer surface for Tinlance Agent Platform. Agent authors should depend on this package and its versioned contracts rather than importing Platform implementation packages.
+The SDK exposes typed contracts and safe client-side composition without creating a second runtime or authority plane.
 
-The SDK exposes typed R10 contracts, lifecycle interpretation helpers, declarative capability metadata, approval workflow composition, governed execution/result handling, opaque evidence references, structured errors, explicit idempotency helpers, W3C trace-context propagation, and agent scaffolding. None of these helpers grants authority or reimplements Platform policy.
+## Why this SDK
 
-## v1.0 / Platform API 1.1
+| Concern | SDK | Platform |
+| --- | --- | --- |
+| Typed developer API | Yes | Contract source |
+| Agent metadata and lifecycle interpretation | Yes | Authoritative state |
+| Request IDs and idempotency helpers | Yes | Enforcement |
+| Trace-context propagation | Yes | Observability authority |
+| Authorization and policy | No | **Authoritative** |
+| Approvals | Request/composition surface | **Authoritative** |
+| Secrets and sandboxing | No | **Authoritative** |
+| Tool execution | Contract surface only | **Authoritative** |
+| Evidence validity | Opaque references | **Authoritative** |
 
-SDK 1.0.0 targets the currently implemented Platform API 1.1 operation gateway.
+This separation keeps the public SDK independently installable while preventing client-side policy drift.
 
-| SDK surface | Platform operation |
-| --- | --- |
-| `health()` | `health` |
-| `principal.get()` | `principal.get` |
-| `agents.list()` | `agents.list` |
-| `capabilities.list(agent_id)` | `capabilities.list` |
-| `runs.create(task_id, agent_id, intent)` | `runs.create` |
-| `runs.cancel(run_id)` | `runs.cancel` |
-| `approvals.request(run_id, action, resource, reason)` | `approvals.request` |
-| `approvals.decide(approval_id, approved)` | `approvals.decide` |
-| `tools.execute(run_id, agent_id, invocation, ...)` | `tools.execute` |
-| `executions.get(execution_id)` | `executions.get` |
-| `runs.events(run_id)` | `runs.events` |
-| `runs.evidence(run_id)` | `runs.evidence` |
+## Quick Start
 
-The wire endpoint is exactly:
+### 1. Install
 
-`POST /v1/agent-platform`
-
-The SDK does not fabricate resource-oriented REST endpoints.
-
-## M21 Enterprise Developer Surface
-
-The final M21 program adds declarative developer contracts for agent metadata, MCP integration, safe observability and evaluation references, while keeping execution authority in the Platform.
-
-- M21.1 — Platform API and R10 wire conformance
-- M21.2 — Agent Developer Surface
-- M21.3 — Durable run lifecycle readiness gate
-- M21.4 — MCP and tooling integration metadata
-- M21.5 — Observability and evaluation references
-- M21.6 — Security and supply-chain certification matrix
-- M21.7 — Enterprise release and certification
-
-These surfaces do not create a second runtime, policy engine, secrets manager, sandbox, MCP runtime, or evaluation authority. See the consolidated [M21 final program](docs/M21.md) and the phase documents under docs/M21*.md.
-
-## Installation
-
-```bash
+~~~bash
 python -m pip install tinlance-agent-platform-sdk
-```
+~~~
 
-## Quick start
+### 2. Verify the installed package
 
-```python
+~~~bash
+tinlance-agent-sdk
+~~~
+
+### 3. Run a typed client call against your Platform deployment
+
+~~~python
 from tinlance_agent_platform_sdk import AgentPlatform
 
 client = AgentPlatform(
@@ -77,186 +74,53 @@ client = AgentPlatform(
 
 health = client.health()
 print(health.ready)
+~~~
 
-agents = client.agents.list()
-```
+> [!WARNING]
+> Replace the example URL and credential with values from your Platform deployment. The SDK does not validate or mint credentials locally.
 
-The `tenant_id` and `subject_id` values are request assertions that the Platform verifies against the authenticated principal. They are not local authority grants.
+## Installation
 
-## Authentication and security
+**Prerequisites**
 
-The SDK sends an opaque bearer credential:
+- Python 3.12, 3.13, or 3.14.
+- Network access to a compatible Tinlance Agent Platform API 1.1 deployment when making remote calls.
 
-`Authorization: Bearer <credential>`
+**PyPI**
 
-It does not assume JWT, OIDC, issuer, audience, or signing semantics. Credential verification is a Platform/deployment responsibility.
+~~~bash
+python -m pip install tinlance-agent-platform-sdk
+~~~
 
-Every request has a validated `X-Request-ID`. If one is not supplied, the SDK generates one. Consequential operations send the same request ID as `Idempotency-Key`.
+**Editable development install**
 
-Consequential operations are:
-
-- `runs.create`
-- `runs.cancel`
-- `approvals.request`
-
-The SDK never automatically retries a consequential operation with a new request ID.
-
-Optional W3C `traceparent`/`tracestate` can be supplied through `TraceContext` and are propagated without granting authority. The SDK follows W3C Trace Context validation rules and does not use baggage as an authorization channel.
-
-### M0–M13 transport hardening
-
-- HTTPS is required by default; local HTTP requires explicit `allow_insecure_http=True`.
-- Automatic redirects are disabled for authenticated requests.
-- Response API version must be exactly `1.1`.
-- Response media type must be `application/json`.
-- Response bodies are bounded (default 8 MiB; configurable with `max_response_bytes`).
-- Success envelopes are validated against the specific operation's contract.
-- Transient HTTP 429/502/503/504 responses support bounded exponential backoff with jitter.
-- `Retry-After` is honored and capped by the configured retry budget.
-- Consequential operations are not retried unless `RetryPolicy(retry_consequential=True)` is explicitly configured.
-
-See [docs/M0.md](docs/M0.md) and [docs/M12-M20.md](docs/M12-M20.md) for acceptance gates.
-
-## Typed models
-
-The SDK provides immutable typed models for:
-
-- health
-- authenticated principal
-- agents
-- capabilities
-- runs
-- approval references
-- events
-- evidence references
-
-Run and approval lifecycle constants are exposed for interpretation. The SDK does not perform client-side lifecycle transitions.
-
-## Errors
-
-Stable Platform HTTP failures map to typed exceptions:
-
-- `InvalidRequestError` — 400
-- `AuthenticationError` — 401
-- `PermissionError` — 403
-- `IdempotencyConflictError` — 409
-- `RequestTooLargeError` — 413
-- `UnsupportedMediaTypeError` — 415
-- `ApiVersionError` — 426
-- `PlatformError` — 500 and unknown Platform failures
-- `TransportError` — network/transport failure before a valid response
-
-Exceptions preserve the HTTP status and stable Platform error code where available. Authorization tokens are not included in exception messages.
-
-## Contract-gated future surfaces
-
-The SDK only publishes operations that exist in a versioned Platform contract.
-
-The following remain intentionally contract-gated rather than invented client APIs:
-
-- streaming/realtime event delivery
-- evidence content retrieval
-- pagination
-- webhooks
-- generated protocol clients
-- resource-oriented REST paths
-
-When the Platform publishes a corresponding versioned contract and executable
-conformance tests, the SDK can add the typed surface without changing the
-authority boundary. See [docs/M12-M20.md](docs/M12-M20.md).
-
-## Architecture boundary
-
-```
-tinlance-agent-platform-sdk
-        |
-        | versioned HTTP contract
-        v
-Tinlance Agent Platform
-        |
-        +-- identity / tenant authority
-        +-- authorization / policy
-        +-- approvals
-        +-- governed tools
-        +-- secrets / sandbox
-        +-- evidence / execution
-```
-
-The SDK is not an agent runtime, policy engine, sandbox, secrets manager, tool executor, evidence authority, or replacement for the Agent Platform.
-
-## Repository relationship
-
-The Agent Platform repository contains an internal `packages/sdk` domain/composition package. That package is not this project.
-
-`tinlance-agent-platform-sdk` is the **external network client SDK** and must remain independent of Platform internals.
-
-## Contract
-
-The SDK v1.0 contract is documented in [docs/contracts/SDK-V1.0-CONTRACT.md](docs/contracts/SDK-V1.0-CONTRACT.md). R10 authority remains in the Platform's `docs/R10-GOVERNED-EXECUTION.md`.
-
-The server-side forensic baseline remains authoritative in the Tinlance Agent Platform repository. If the server API changes, the server contract and executable tests must change before the SDK expands its public surface.
-
-## Enterprise transport and diagnostics
-
-Enterprise deployments may provide a caller-owned `credential_provider` for
-short-lived credential rotation, a custom CA bundle, mutual TLS client
-certificates, and an explicit HTTP(S) proxy. These settings only configure the
-SDK transport; Platform identity and authorization remain server-side.
-
-Optional `TelemetrySink` hooks expose operation/request/status/timing metadata
-without request or response payloads. Telemetry callback failures cannot change
-the request result.
-
-Local diagnostics never read credentials or make network requests:
-
-```bash
-tinlance-agent-sdk
-```
-
-## Development
-
-```bash
+~~~bash
 python -m pip install -e ".[test,security]"
-python -m pip check
-ruff check .
-ruff format --check .
-mypy src
-pytest --cov=src --cov-report=term-missing --cov-fail-under=90
-```
+~~~
 
-Supported Python versions: 3.12, 3.13, and 3.14.
+The package has no mandatory runtime dependencies.
 
-## License
+## Usage
 
-Apache License 2.0. See [LICENSE](LICENSE).
+### Synchronous client
 
+~~~python
+from tinlance_agent_platform_sdk import AgentPlatform
 
-## M1–M11 SDK surface
+client = AgentPlatform(
+    base_url="https://platform.example",
+    bearer_token="opaque-credential",
+    tenant_id="tenant-a",
+    subject_id="user-a",
+)
 
-The repository follows the SDK delivery sequence (distinct from the Platform's M0–M14 capability roadmap):
+print(client.health().ready)
+agents = client.agents.list()
+~~~
 
-```text
-M0 Platform contract discovery
-M1 Transport + Client Foundation
-M2 Runs + typed models
-M3 Approvals + governance
-M4 Tools
-M5 Evidence + Events
-M6 Async API
-M7 Research Agent
-M8 Security + compatibility hardening
-M9 v1.0 release
-M10 Production developer experience
-M11 v1.0 readiness
-```
+### Asynchronous client
 
-The complete acceptance contract is [docs/ROADMAP-M0-M11.md](docs/ROADMAP-M0-M11.md). The release gate also requires reconciliation with the Platform R10 contract and executable conformance tests.
-
-### Async client
-
-The async client reuses the exact audited synchronous transport rather than maintaining a second HTTP implementation:
-
-```python
+~~~python
 from tinlance_agent_platform_sdk import AsyncAgentPlatform, ClientConfig
 
 client = AsyncAgentPlatform(
@@ -267,23 +131,151 @@ client = AsyncAgentPlatform(
         subject_id="user-a",
     )
 )
+
 health = await client.health()
-```
+print(health.ready)
+~~~
 
-### Tools
+See [examples/basic_async.py](examples/basic_async.py) for the repository's runnable async example.
 
-Tool descriptors and invocation/result models are available for SDK composition. They
-are metadata contracts only. The SDK cannot authorize or execute a tool locally.
+### Public operation surface
 
-### Research Agent
+| SDK method | Platform operation |
+| --- | --- |
+| health() | health |
+| principal.get() | principal.get |
+| agents.list() | agents.list |
+| capabilities.list(agent_id) | capabilities.list |
+| runs.create(...) | runs.create |
+| runs.cancel(run_id) | runs.cancel |
+| approvals.request(...) | approvals.request |
+| approvals.decide(...) | approvals.decide |
+| tools.execute(...) | tools.execute |
+| executions.get(execution_id) | executions.get |
+| runs.events(run_id) | runs.events |
+| runs.evidence(run_id) | runs.evidence |
 
-`ResearchAgent` provides governed research-run composition over the existing
-`runs.create` contract. It intentionally does not fabricate model, tool, run-wait,
-or run-result endpoints that Platform API 1.1 does not publish.
+The wire boundary is POST /v1/agent-platform. The SDK does not invent resource-oriented REST paths.
 
-### Compatibility rule
+## Configuration / Options
 
-The public SDK operation set is explicitly declared in
-`tinlance_agent_platform_sdk.compat`. New remote operations require a corresponding
-versioned Platform contract and executable server conformance tests before they can be
-added to the public SDK.
+| Option | Default | Purpose |
+| --- | --- | --- |
+| base_url | Required | Platform API origin |
+| bearer_token | Optional when a credential provider is used | Opaque bearer credential |
+| tenant_id | Optional | Request assertion verified by Platform |
+| subject_id | Optional | Request assertion verified by Platform |
+| allow_insecure_http | False | Explicit opt-in for local HTTP |
+| max_response_bytes | 8 MiB | Response-size bound |
+| RetryPolicy | Conservative | Bounded transient retry behavior |
+| TraceContext | None | W3C trace-context propagation |
+| credential_provider | None | Caller-owned short-lived credential rotation |
+| Custom CA / mTLS / proxy | None | Enterprise transport configuration |
+
+Consequential operations are not automatically retried unless the caller explicitly enables that policy.
+
+## Features
+
+| Capability | Status |
+| --- | --- |
+| Typed R10 developer contracts | Stable |
+| Sync and async clients | Stable |
+| Lifecycle interpretation helpers | Stable |
+| Capability metadata | Stable |
+| Approval workflow composition | Stable |
+| Governed execution/result models | Stable |
+| Opaque evidence references | Stable |
+| Structured errors | Stable |
+| Explicit idempotency helpers | Stable |
+| W3C trace-context propagation | Stable |
+| MCP integration metadata | Stable |
+| Payload-free telemetry hooks | Stable |
+| Enterprise credential rotation | Stable |
+| SBOM and provenance release controls | Stable |
+| Local diagnostics | Stable |
+
+Contract-gated surfaces such as streaming, pagination, webhooks, evidence-content retrieval, and generated protocol clients are added only after the Platform publishes a versioned contract and executable conformance tests.
+
+## Security Model
+
+The SDK requires HTTPS by default, disables redirects for authenticated requests, validates API version and response media type, bounds response bodies, and avoids leaking authorization tokens through exceptions.
+
+The SDK does **not** decide whether a caller is authorized. It transports assertions and credentials to the Platform, where identity, tenant isolation, policy, approval authority, secrets, sandboxing, execution, and evidence validity are enforced.
+
+Read [SECURITY.md](SECURITY.md) before handling security-sensitive issues.
+
+## Documentation
+
+- [Documentation index](docs/README.md)
+- [SDK v1.0 contract](docs/contracts/SDK-V1.0-CONTRACT.md)
+- [Contract manifest](docs/contracts/sdk-contract-manifest.json)
+- [Compatibility matrix](docs/contracts/compatibility-matrix.json)
+- [M21 program](docs/M21.md)
+- [M12–M20 program](docs/M12-M20.md)
+- [M0 transport hardening](docs/M0.md)
+- [Async example](examples/basic_async.py)
+
+For agent-facing discovery, see [llms.txt](llms.txt).
+
+## Development
+
+~~~bash
+python -m pip install -e ".[test,security]"
+python -m pip check
+ruff check .
+ruff format --check .
+mypy src
+pytest --cov=src --cov-report=term-missing --cov-fail-under=90
+~~~
+
+CI runs the supported Python matrix, type/lint/format checks, coverage enforcement, dependency auditing, SBOM generation, package smoke tests, and CodeQL.
+
+## Contributing
+
+Contributions are welcome when they preserve the SDK/Platform boundary.
+
+Start with [CONTRIBUTING.md](CONTRIBUTING.md), then open a focused pull request using the repository template.
+
+## License + Acknowledgements
+
+Copyright 2026 Tinlance Limited.
+
+Licensed under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for attribution information.
+
+The SDK uses standard Python packaging, typing, testing, and GitHub Actions tooling. See [pyproject.toml](pyproject.toml) for the supported development toolchain.
+
+<details>
+<summary>Roadmap and contract gates</summary>
+
+The historical delivery sequence is preserved in [docs/ROADMAP-M0-M11.md](docs/ROADMAP-M0-M11.md) and the M12–M21 program documents.
+
+New public operations remain contract-gated: the server-side Platform contract and executable conformance tests are authoritative before SDK expansion.
+
+</details>
+
+<details>
+<summary>Troubleshooting</summary>
+
+**Import fails after installation**
+
+~~~bash
+python -c "import sys, tinlance_agent_platform_sdk as sdk; print(sys.executable); print(sdk.SDK_VERSION)"
+python -m pip check
+~~~
+
+**Platform request fails**
+
+Check the Platform URL, credential, tenant/subject assertions, API version, and network connectivity. Do not paste credentials into issues.
+
+**A feature is missing**
+
+Check the contract documentation first. A capability may be intentionally deferred until the Platform publishes a versioned contract.
+
+</details>
+
+<details>
+<summary>Support</summary>
+
+See [SUPPORT.md](SUPPORT.md). Security issues must follow [SECURITY.md](SECURITY.md) rather than a public issue.
+
+</details>
