@@ -19,8 +19,10 @@ The executable architecture is intentionally simple:
 
 ~~~mermaid
 flowchart LR
+    D[Tinlance Agent Developer] --> O[Tinlance Agent OS]
     A[Agent application] --> B[Tinlance Agent Platform SDK]
-    B -->|versioned HTTP contract| C[Tinlance Agent Platform]
+    O --> B
+    B -->|versioned HTTP 1.1 contract| C[Tinlance Agent Platform]
     C --> D[Identity / tenant authority]
     C --> E[Policy / approvals]
     C --> F[Governed execution / tools]
