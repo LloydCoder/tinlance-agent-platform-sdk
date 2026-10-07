@@ -43,7 +43,9 @@ class TransformationReference:
         if self.digest is not None and (
             len(self.digest) != 64 or any(c not in "0123456789abcdef" for c in self.digest)
         ):
-            raise ValueError("transformation reference digest must be a lowercase SHA-256 hex digest")
+            raise ValueError(
+                "transformation reference digest must be a lowercase SHA-256 hex digest"
+            )
 
     def as_payload(self) -> dict[str, str]:
         payload = {"ref": self.ref, "kind": self.kind}
@@ -155,7 +157,12 @@ class Transformation:
             "evidence": [ref.as_payload() for ref in self.evidence_refs],
             "outcome": self.outcome.as_payload()
             if self.outcome is not None
-            else {"status": "unknown", "achieved": False, "metrics": [], "business_effect_refs": []},
+            else {
+                "status": "unknown",
+                "achieved": False,
+                "metrics": [],
+                "business_effect_refs": [],
+            },
         }
 
     def content_digest(self) -> str:
