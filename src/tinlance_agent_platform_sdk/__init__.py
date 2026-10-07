@@ -61,6 +61,14 @@ from .research import ResearchAgent, ResearchRequest, ResearchRun
 from .retry import RetryPolicy
 from .telemetry import TelemetrySink, safe_attributes
 from .tools import ToolContractRegistry, ToolDescriptor, ToolInvocation, ToolResult
+from .transformation import (
+    Transformation,
+    TransformationExecutionState,
+    TransformationMetric,
+    TransformationOutcome,
+    TransformationOutcomeStatus,
+    TransformationReference,
+)
 
 __all__ = [
     "AgentPlatform",
@@ -124,6 +132,12 @@ __all__ = [
     "ToolResult",
     "TelemetrySink",
     "safe_attributes",
+    "Transformation",
+    "TransformationExecutionState",
+    "TransformationMetric",
+    "TransformationOutcome",
+    "TransformationOutcomeStatus",
+    "TransformationReference",
     "SdkError",
     "TransportError",
     "UnsupportedMediaTypeError",
