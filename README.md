@@ -217,6 +217,8 @@ Read [SECURITY.md](SECURITY.md) before handling security-sensitive issues.
 
 ## Documentation
 
+- [P10 — Replication & Agent System GA](docs/ecosystem/P10-REPLICATION-GA.md)
+
 - [Documentation index](docs/README.md)
 - [SDK v1.0 contract](docs/contracts/SDK-V1.0-CONTRACT.md)
 - [Contract manifest](docs/contracts/sdk-contract-manifest.json)
