@@ -63,3 +63,17 @@ M13.7 evidence/audit boundary: SDK provenance metadata is non-authoritative. Pla
 ## M13.8 — Observability and incident correlation
 
 M13.8 observability boundary: SDK trace and telemetry identifiers are correlation metadata only. Platform owns security-event correlation and incident context; telemetry never grants authority or bypasses policy.
+
+
+## Final M13.4-M13.8 authority reconciliation
+
+The SDK is a declaration/client surface only. It never mints, validates, consumes, or substitutes for Platform execution authority.
+
+- Budget declarations are advisory inputs; Platform owns reservation/admission/settlement.
+- Tool/MCP execution requires a Platform-issued single-use permit.
+- Sandbox roots and resource ceilings are Platform-governed controls.
+- Secret references are metadata; scoped secret resolution occurs only under Platform execution scope.
+- Evidence/audit integrity and attestation are Platform evidence contracts.
+- Telemetry identifiers are correlation metadata and never authorize execution.
+
+The Platform currently hardens MCP calls with sealed permits, exact intent binding, fail-closed authorization, and single-use replay protection. The SDK must remain compatible with these boundaries without duplicating them.
