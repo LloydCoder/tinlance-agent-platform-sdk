@@ -30,9 +30,7 @@ def fetch_json(path: str) -> dict:
     )
     with urlopen(request, timeout=15) as response:
         if response.status != 200:
-            raise RuntimeError(
-                f"TSIC contract fetch failed for {path}: HTTP {response.status}"
-            )
+            raise RuntimeError(f"TSIC contract fetch failed for {path}: HTTP {response.status}")
         return json.load(response)
 
 
