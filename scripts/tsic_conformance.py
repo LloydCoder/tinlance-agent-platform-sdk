@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 from urllib.request import Request, urlopen
 
-TSIC_REVISION = "28336e26b648f438ae03ebaf03a48b7b421cde31"
+TSIC_REVISION = "bdb5b7f9f2295562ad8681c591a8a927500b4d8c"
 RAW_ROOT = (
     f"https://raw.githubusercontent.com/LloydCoder/tinlance-system-integration/{TSIC_REVISION}"
 )
