@@ -27,7 +27,7 @@ Compatibility is proven by the cross-repository integration gate maintained in T
 
 ## Conformance
 
-The Agent Developer-hosted conformance suite is the executable compatibility gate for the four repositories. It verifies API 1.1 interoperability, identity binding, idempotency, trace propagation, transport security, and authority-free SDK dependency direction against pinned revisions.
+The Agent Developer-hosted conformance suite remains the developer-system compatibility gate, while TSIC is the canonical ecosystem integration and certification authority. This repository consumes the pinned TSIC contract directly and verifies API 1.1 interoperability, identity binding, idempotency, trace propagation, transport security, and authority-free SDK dependency direction against reviewed revisions.
 
 ## Milestone vocabulary
 
