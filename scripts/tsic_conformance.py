@@ -7,7 +7,9 @@ import json
 from urllib.request import Request, urlopen
 
 TSIC_REVISION = "28336e26b648f438ae03ebaf03a48b7b421cde31"
-RAW_ROOT = f"https://raw.githubusercontent.com/LloydCoder/tinlance-system-integration/{TSIC_REVISION}"
+RAW_ROOT = (
+    f"https://raw.githubusercontent.com/LloydCoder/tinlance-system-integration/{TSIC_REVISION}"
+)
 REQUIRED = {
     "identity-context",
     "agent-registration",
@@ -21,11 +23,16 @@ REQUIRED = {
 def fetch_json(path: str) -> dict:
     request = Request(
         f"{RAW_ROOT}/{path}",
-        headers={"Accept": "application/json", "User-Agent": "tinlance-agent-platform-sdk-ci"},
+        headers={
+            "Accept": "application/json",
+            "User-Agent": "tinlance-agent-platform-sdk-ci",
+        },
     )
     with urlopen(request, timeout=15) as response:
         if response.status != 200:
-            raise RuntimeError(f"TSIC contract fetch failed for {path}: HTTP {response.status}")
+            raise RuntimeError(
+                f"TSIC contract fetch failed for {path}: HTTP {response.status}"
+            )
         return json.load(response)
 
 
@@ -45,8 +52,7 @@ def main() -> None:
     bindings = {item["tsic_contract"] for item in adapter["contract_bindings"]}
     if bindings != REQUIRED:
         raise AssertionError(
-            "TSIC SDK binding drift: "
-            f"expected {sorted(REQUIRED)}, got {sorted(bindings)}"
+            f"TSIC SDK binding drift: expected {sorted(REQUIRED)}, got {sorted(bindings)}"
         )
 
     registered = {item["id"] for item in registry["contracts"]}
@@ -73,7 +79,10 @@ def main() -> None:
     if invariants != required_invariants:
         raise AssertionError("TSIC SDK invariant drift")
 
-    print("PASS TSIC SDK conformance:", f"revision={TSIC_REVISION} contracts={len(bindings)}")
+    print(
+        "PASS TSIC SDK conformance:",
+        f"revision={TSIC_REVISION} contracts={len(bindings)}",
+    )
 
 
 if __name__ == "__main__":
