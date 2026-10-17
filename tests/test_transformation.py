@@ -4,8 +4,8 @@ import pytest
 
 from tinlance_agent_platform_sdk import (
     Transformation,
-    TransformationMetric,
     TransformationConstraints,
+    TransformationMetric,
     TransformationOutcome,
     TransformationProvenance,
     TransformationReference,
