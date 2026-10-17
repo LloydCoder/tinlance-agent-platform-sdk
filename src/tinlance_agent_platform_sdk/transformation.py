@@ -230,9 +230,15 @@ class Transformation:
             raise ValueError("transformation requires at least one requested capability")
         if not self.policy_refs or any(not ref.strip() for ref in self.policy_refs):
             raise ValueError("transformation requires at least one policy reference")
-        if any(not ref.strip() or not reason.strip() for ref, reason in self.requested_capabilities):
+        if any(
+            not ref.strip() or not reason.strip()
+            for ref, reason in self.requested_capabilities
+        ):
             raise ValueError("requested capabilities require a reference and reason")
-        if any(not ref.strip() for ref in self.approval_refs + self.source_refs + self.resource_refs):
+        if any(
+            not ref.strip()
+            for ref in self.approval_refs + self.source_refs + self.resource_refs
+        ):
             raise ValueError("transformation references must be non-empty")
         if self.business_metric is not None:
             _require_normalized(self.business_metric, "business_metric")
