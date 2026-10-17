@@ -90,13 +90,11 @@ def test_transformation_rejects_weak_idempotency() -> None:
         )
 
 
-
 def test_transformation_rejects_contradictory_outcome_status() -> None:
     with pytest.raises(ValueError):
         TransformationOutcome("achieved", False)
     with pytest.raises(ValueError):
         TransformationOutcome("partially_achieved", True)
-
 
 def test_transformation_provenance_requires_timezone() -> None:
     with pytest.raises(ValueError):
@@ -104,7 +102,6 @@ def test_transformation_provenance_requires_timezone() -> None:
             declared_by="tadl:p1",
             recorded_at="2026-10-17T17:02:01",
         )
-
 
 def test_transformation_constraints_are_preserved() -> None:
     constraints = TransformationConstraints(
