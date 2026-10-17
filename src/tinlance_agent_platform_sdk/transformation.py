@@ -251,7 +251,11 @@ class Transformation:
         if self.budget_ref is not None:
             _require_normalized(self.budget_ref, "budget_ref")
         if self.data_classification not in (
-            None, "public", "internal", "confidential", "restricted"
+            None,
+            "public",
+            "internal",
+            "confidential",
+            "restricted",
         ):
             raise ValueError("unsupported transformation data classification")
         if self.started_at is not None:
