@@ -4,8 +4,10 @@ import pytest
 
 from tinlance_agent_platform_sdk import (
     Transformation,
+    TransformationConstraints,
     TransformationMetric,
     TransformationOutcome,
+    TransformationProvenance,
     TransformationReference,
 )
 
@@ -36,6 +38,19 @@ def make_transformation() -> Transformation:
             metrics=(TransformationMetric("cycle_hours", 2, "hours"),),
             business_effect_refs=("effect:reduced-close-time",),
         ),
+        deadline="2026-10-18T00:00:00Z",
+        budget_ref="budget:task-001",
+        data_classification="confidential",
+        resource_refs=("resource:ledger",),
+        approval_refs=("approval:001",),
+        source_refs=("source:request-001",),
+        started_at="2026-10-17T17:00:00Z",
+        completed_at="2026-10-17T17:02:00Z",
+        provenance=TransformationProvenance(
+            declared_by="tadl:p1",
+            recorded_at="2026-10-17T17:02:01Z",
+            source_refs=("source:request-001",),
+        ),
     )
 
 
@@ -45,6 +60,13 @@ def test_transformation_payload_is_authority_neutral() -> None:
     assert payload["schema_version"] == "transformation/v1"
     assert "authorization_decision" not in payload
     assert "capability_grant" not in payload
+    assert payload["provenance"]["declared_by"] == "tadl:p1"
+    assert payload["provenance"]["recorded_at"] == "2026-10-17T17:02:01Z"
+    assert payload["constraints"]["budget_ref"] == "budget:task-001"
+    assert payload["constraints"]["data_classification"] == "confidential"
+    assert payload["governance"]["approval_refs"] == ["approval:001"]
+    assert payload["execution"]["started_at"] == "2026-10-17T17:00:00Z"
+    assert payload["execution"]["completed_at"] == "2026-10-17T17:02:00Z"
     assert transformation.content_digest() == transformation.content_digest()
 
 
@@ -66,3 +88,33 @@ def test_transformation_rejects_weak_idempotency() -> None:
             risk_class="low",
             idempotency_key="short",
         )
+
+
+def test_transformation_rejects_contradictory_outcome_status() -> None:
+    with pytest.raises(ValueError):
+        TransformationOutcome("achieved", False)
+    with pytest.raises(ValueError):
+        TransformationOutcome("partially_achieved", True)
+
+
+def test_transformation_provenance_requires_timezone() -> None:
+    with pytest.raises(ValueError):
+        TransformationProvenance(
+            declared_by="tadl:p1",
+            recorded_at="2026-10-17T17:02:01",
+        )
+
+
+def test_transformation_constraints_are_preserved() -> None:
+    constraints = TransformationConstraints(
+        deadline="2026-10-18T00:00:00Z",
+        budget_ref="budget:task-001",
+        data_classification="confidential",
+        resource_refs=("resource:ledger",),
+    )
+    assert constraints.as_payload() == {
+        "deadline": "2026-10-18T00:00:00Z",
+        "budget_ref": "budget:task-001",
+        "data_classification": "confidential",
+        "resource_refs": ["resource:ledger"],
+    }

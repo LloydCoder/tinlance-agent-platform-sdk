@@ -63,10 +63,13 @@ from .telemetry import TelemetrySink, safe_attributes
 from .tools import ToolContractRegistry, ToolDescriptor, ToolInvocation, ToolResult
 from .transformation import (
     Transformation,
+    TransformationConstraints,
+    TransformationDataClassification,
     TransformationExecutionState,
     TransformationMetric,
     TransformationOutcome,
     TransformationOutcomeStatus,
+    TransformationProvenance,
     TransformationReference,
 )
 
@@ -133,10 +136,13 @@ __all__ = [
     "TelemetrySink",
     "safe_attributes",
     "Transformation",
+    "TransformationConstraints",
+    "TransformationDataClassification",
     "TransformationExecutionState",
     "TransformationMetric",
     "TransformationOutcome",
     "TransformationOutcomeStatus",
+    "TransformationProvenance",
     "TransformationReference",
     "SdkError",
     "TransportError",
