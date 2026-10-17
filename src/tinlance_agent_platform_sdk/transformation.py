@@ -88,7 +88,11 @@ class TransformationConstraints:
         if self.budget_ref is not None:
             _require_normalized(self.budget_ref, "budget_ref")
         if self.data_classification not in (
-            None, "public", "internal", "confidential", "restricted"
+            None,
+            "public",
+            "internal",
+            "confidential",
+            "restricted",
         ):
             raise ValueError("unsupported transformation data classification")
         if any(not ref.strip() for ref in self.resource_refs):
@@ -231,13 +235,11 @@ class Transformation:
         if not self.policy_refs or any(not ref.strip() for ref in self.policy_refs):
             raise ValueError("transformation requires at least one policy reference")
         if any(
-            not ref.strip() or not reason.strip()
-            for ref, reason in self.requested_capabilities
+            not ref.strip() or not reason.strip() for ref, reason in self.requested_capabilities
         ):
             raise ValueError("requested capabilities require a reference and reason")
         if any(
-            not ref.strip()
-            for ref in self.approval_refs + self.source_refs + self.resource_refs
+            not ref.strip() for ref in self.approval_refs + self.source_refs + self.resource_refs
         ):
             raise ValueError("transformation references must be non-empty")
         if self.business_metric is not None:
