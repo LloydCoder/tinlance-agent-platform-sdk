@@ -19,9 +19,7 @@ TransformationExecutionState = Literal[
 TransformationOutcomeStatus = Literal[
     "unknown", "achieved", "partially_achieved", "not_achieved", "inconclusive"
 ]
-TransformationDataClassification = Literal[
-    "public", "internal", "confidential", "restricted"
-]
+TransformationDataClassification = Literal["public", "internal", "confidential", "restricted"]
 
 
 def _require_normalized(value: str, label: str) -> None:
@@ -88,11 +86,7 @@ class TransformationConstraints:
         if self.budget_ref is not None:
             _require_normalized(self.budget_ref, "budget_ref")
         if self.data_classification not in (
-            None,
-            "public",
-            "internal",
-            "confidential",
-            "restricted",
+            None, "public", "internal", "confidential", "restricted"
         ):
             raise ValueError("unsupported transformation data classification")
         if any(not ref.strip() for ref in self.resource_refs):
