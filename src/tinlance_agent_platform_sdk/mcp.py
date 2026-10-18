@@ -23,7 +23,9 @@ _SENSITIVE_METADATA_KEY = re.compile(
     re.IGNORECASE,
 )
 _SENSITIVE_METADATA_VALUE = re.compile(
-    r"(?i)(?:\bbearer\s+\S+|(?:api[_-]?key|client[_-]?secret|password|access[_-]?token)\s*[:=]\s*\S+|-----BEGIN [A-Z ]*PRIVATE KEY-----|\b(?:gh[pousr]_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9]{20,})\b)"
+    r"(?i)(?:\bbearer\s+\S+|(?:api[_-]?key|client[_-]?secret|password|access[_-]?token)"
+    r"\s*[:=]\s*\S+|-----BEGIN [A-Z ]*PRIVATE KEY-----|"
+    r"\b(?:gh[pousr]_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9]{20,})\b)"
 )
 
 
