@@ -28,6 +28,7 @@ from .contracts import (
     StructuredError,
     canonical_intent_fingerprint,
 )
+from .events import CloudEvent
 from .errors import (
     ApiVersionError,
     AuthenticationError,
@@ -75,6 +76,7 @@ from .transformation import (
 
 __all__ = [
     "AgentPlatform",
+    "CloudEvent",
     "AsyncAgentPlatform",
     "AgentScaffold",
     "EvaluationAssertion",
