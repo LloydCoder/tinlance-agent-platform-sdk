@@ -83,6 +83,13 @@ def test_mcp_metadata_rejects_credentials_and_duplicate_keys() -> None:
             MCPTransportSpec("streamable_http", "https://mcp.example.test/mcp"),
             metadata=(("purpose", "Bearer example-token"),),
         )
+    with pytest.raises(ValueError, match="credential-shaped"):
+        MCPServerSpec(
+            "research-mcp",
+            "1.0.0",
+            MCPTransportSpec("streamable_http", "https://mcp.example.test/mcp"),
+            metadata=(("apiKey", "not-a-real-key"),),
+        )
     with pytest.raises(ValueError, match="unique"):
         MCPServerSpec(
             "research-mcp",
