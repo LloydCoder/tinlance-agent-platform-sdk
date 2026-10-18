@@ -64,9 +64,10 @@ def _validate_http_endpoint(endpoint: str) -> None:
         address = ipaddress.ip_address(hostname)
     except ValueError:
         address = None
-    if address is not None and not address.is_global:
-        if not (parsed.scheme == "http" and address.is_loopback):
-            raise ValueError("MCP endpoint must not use a non-public IP address")
+    if address is not None and not address.is_global and not (
+        parsed.scheme == "http" and address.is_loopback
+    ):
+        raise ValueError("MCP endpoint must not use a non-public IP address")
     if parsed.scheme == "https" and loopback:
         raise ValueError("MCP endpoint must not target localhost")
     if parsed.scheme == "http" and not (
