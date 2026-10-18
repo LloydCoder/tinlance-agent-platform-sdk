@@ -14,9 +14,7 @@ from urllib.parse import urlparse
 
 MCPTransport = Literal["streamable_http", "stdio"]
 MCPProtocolVersion = Literal["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"]
-_SUPPORTED_PROTOCOL_VERSIONS = frozenset(
-    {"2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"}
-)
+_SUPPORTED_PROTOCOL_VERSIONS = frozenset({"2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"})
 _SENSITIVE_METADATA_KEY = re.compile(
     r"(?:^|[_-])(authorization|token|secret|password|credential|api[_-]?key|private[_-]?key)"
     r"(?:$|[_-])",
@@ -64,15 +62,15 @@ def _validate_http_endpoint(endpoint: str) -> None:
         address = ipaddress.ip_address(hostname)
     except ValueError:
         address = None
-    if address is not None and not address.is_global and not (
-        parsed.scheme == "http" and address.is_loopback
+    if (
+        address is not None
+        and not address.is_global
+        and not (parsed.scheme == "http" and address.is_loopback)
     ):
         raise ValueError("MCP endpoint must not use a non-public IP address")
     if parsed.scheme == "https" and loopback:
         raise ValueError("MCP endpoint must not target localhost")
-    if parsed.scheme == "http" and not (
-        loopback or (address is not None and address.is_loopback)
-    ):
+    if parsed.scheme == "http" and not (loopback or (address is not None and address.is_loopback)):
         raise ValueError("cleartext MCP is allowed only for loopback development")
 
 
