@@ -377,6 +377,30 @@ def test_client_configuration_validation() -> None:
         )
 
 
+@pytest.mark.parametrize("timeout", [0, -1, float("nan"), float("inf"), -float("inf")])
+def test_client_rejects_non_finite_or_non_positive_timeout(timeout: float) -> None:
+    with pytest.raises(ValueError, match="timeout must be finite and positive"):
+        AgentPlatform(
+            base_url="https://example.com",
+            bearer_token=TOKEN,
+            tenant_id=TENANT,
+            subject_id=SUBJECT,
+            timeout=timeout,
+        )
+
+
+@pytest.mark.parametrize("max_response_bytes", [0, -1, True, 1.5, float("inf")])
+def test_client_rejects_invalid_response_limit(max_response_bytes: int) -> None:
+    with pytest.raises(ValueError, match="max_response_bytes must be a positive integer"):
+        AgentPlatform(
+            base_url="https://example.com",
+            bearer_token=TOKEN,
+            tenant_id=TENANT,
+            subject_id=SUBJECT,
+            max_response_bytes=max_response_bytes,
+        )
+
+
 def test_client_input_validation(fake: FakePlatform) -> None:
     sdk = make_client(fake)
     with pytest.raises(ValueError):
