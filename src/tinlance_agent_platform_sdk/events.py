@@ -79,7 +79,7 @@ class CloudEvent:
             not _SPAN_ID.fullmatch(self.spanid) or set(self.spanid) == {"0"}
         ):
             raise ValueError("spanid must be a valid non-zero W3C span identifier")
-        for value, name, limit in (
+        for optional_value, optional_name, optional_limit in (
             (self.subject, "subject", 1024),
             (self.causationid, "causationid", 256),
             (self.workspaceid, "workspaceid", 256),
@@ -88,8 +88,8 @@ class CloudEvent:
             (self.agentid, "agentid", 256),
             (self.dataschema, "dataschema", 2048),
         ):
-            if value is not None:
-                _required(value, name, limit)
+            if optional_value is not None:
+                _required(optional_value, optional_name, optional_limit)
         if self.dataclassification is not None and self.dataclassification not in _CLASSIFICATIONS:
             raise ValueError("unsupported dataclassification")
         if not isinstance(self.data, Mapping):
