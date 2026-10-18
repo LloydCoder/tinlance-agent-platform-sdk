@@ -80,6 +80,7 @@ class Run:
     task_id: UUID
     state: str
     agent_id: UUID
+    failure_code: str | None = None
 
     @classmethod
     def from_payload(cls, payload: dict[str, Any]) -> Run:
@@ -87,9 +88,16 @@ class Run:
         task_id = _text(payload, "task_id")
         state = _text(payload, "state")
         agent_id = _text(payload, "agent_id")
+        failure_code = payload.get("failure_code")
         if state not in RUN_STATES:
             raise ValueError("Platform returned an invalid run state")
-        return cls(_uuid(run_id), _uuid(task_id), state, _uuid(agent_id))
+        if failure_code is not None and (
+            not isinstance(failure_code, str)
+            or not failure_code
+            or failure_code != failure_code.strip()
+        ):
+            raise ValueError("Platform returned an invalid run failure code")
+        return cls(_uuid(run_id), _uuid(task_id), state, _uuid(agent_id), failure_code)
 
 
 @dataclass(frozen=True, slots=True)
