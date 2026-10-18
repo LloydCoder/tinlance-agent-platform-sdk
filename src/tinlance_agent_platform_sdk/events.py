@@ -13,10 +13,40 @@ from dataclasses import dataclass
 from datetime import datetime
 from types import MappingProxyType
 from typing import Any
+from urllib.parse import urlsplit
 
 _TRACE_ID = re.compile(r"^[0-9a-f]{32}$")
 _SPAN_ID = re.compile(r"^[0-9a-f]{16}$")
 _CLASSIFICATIONS = {"public", "internal", "confidential", "restricted"}
+
+
+def _uri_reference(value: str, name: str, *, absolute: bool = False) -> None:
+    _required(value, name, 2048)
+    if any(character.isspace() for character in value):
+        raise ValueError(f"{name} must be a URI reference")
+    parsed = urlsplit(value)
+    if absolute and not parsed.scheme:
+        raise ValueError(f"{name} must be an absolute URI")
+    if parsed.scheme.lower() in {"http", "https"} and not parsed.netloc:
+        raise ValueError(f"{name} must include an authority for HTTP(S) URIs")
+    if parsed.username is not None or parsed.password is not None:
+        raise ValueError(f"{name} must not embed credentials")
+
+
+def _freeze_json(value: Any) -> Any:
+    if isinstance(value, dict):
+        return MappingProxyType({key: _freeze_json(item) for key, item in value.items()})
+    if isinstance(value, list):
+        return tuple(_freeze_json(item) for item in value)
+    return value
+
+
+def _thaw_json(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {key: _thaw_json(item) for key, item in value.items()}
+    if isinstance(value, tuple):
+        return [_thaw_json(item) for item in value]
+    return value
 
 
 def _required(value: str, name: str, limit: int = 256) -> None:
@@ -72,6 +102,7 @@ class CloudEvent:
             (self.correlationid, "correlationid", 256),
         ):
             _required(value, name, limit)
+        _uri_reference(self.source, "source")
         _timestamp(self.time)
         if not _TRACE_ID.fullmatch(self.traceid) or set(self.traceid) == {"0"}:
             raise ValueError("traceid must be a valid non-zero W3C trace identifier")
@@ -90,6 +121,8 @@ class CloudEvent:
         ):
             if optional_value is not None:
                 _required(optional_value, optional_name, optional_limit)
+        if self.dataschema is not None:
+            _uri_reference(self.dataschema, "dataschema", absolute=True)
         if self.dataclassification is not None and self.dataclassification not in _CLASSIFICATIONS:
             raise ValueError("unsupported dataclassification")
         if not isinstance(self.data, Mapping):
@@ -98,8 +131,8 @@ class CloudEvent:
             encoded = json.dumps(
                 dict(self.data), sort_keys=True, separators=(",", ":"), allow_nan=False
             )
-            # A fresh top-level mapping prevents callers mutating the original mapping.
-            object.__setattr__(self, "data", MappingProxyType(json.loads(encoded)))
+            # Recursively frozen JSON prevents mutation of nested event data.
+            object.__setattr__(self, "data", _freeze_json(json.loads(encoded)))
         except (TypeError, ValueError) as exc:
             raise ValueError("data must contain only finite JSON-compatible values") from exc
 
@@ -115,7 +148,7 @@ class CloudEvent:
             "executionid": self.executionid,
             "traceid": self.traceid,
             "correlationid": self.correlationid,
-            "data": dict(self.data),
+            "data": _thaw_json(self.data),
         }
         for name in (
             "subject",
