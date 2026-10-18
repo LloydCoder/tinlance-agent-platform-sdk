@@ -42,6 +42,7 @@ from .errors import (
     UnsupportedMediaTypeError,
 )
 from .evaluation import EvaluationAssertion, EvaluationCase, EvaluationResult
+from .events import CloudEvent
 from .idempotency import IdempotencyKey
 from .lifecycle import is_approval_terminal, is_execution_terminal, is_run_terminal
 from .mcp import MCPAuthMetadata, MCPServerSpec, MCPToolRef, MCPTransportSpec
@@ -75,6 +76,7 @@ from .transformation import (
 
 __all__ = [
     "AgentPlatform",
+    "CloudEvent",
     "AsyncAgentPlatform",
     "AgentScaffold",
     "EvaluationAssertion",
