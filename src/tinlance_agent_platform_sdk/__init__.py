@@ -62,6 +62,7 @@ from .research import ResearchAgent, ResearchRequest, ResearchRun
 from .retry import RetryPolicy
 from .telemetry import TelemetrySink, safe_attributes
 from .tools import ToolContractRegistry, ToolDescriptor, ToolInvocation, ToolResult
+from .trace_context import TraceEvidenceRef, TraceLineageContext
 from .transformation import (
     Transformation,
     TransformationConstraints,
@@ -95,6 +96,8 @@ __all__ = [
     "Agent",
     "ClientConfig",
     "TraceContext",
+    "TraceLineageContext",
+    "TraceEvidenceRef",
     "ApprovalRequest",
     "CapabilityDeclaration",
     "ExecutionResult",
