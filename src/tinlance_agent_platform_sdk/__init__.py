@@ -28,7 +28,6 @@ from .contracts import (
     StructuredError,
     canonical_intent_fingerprint,
 )
-from .events import CloudEvent
 from .errors import (
     ApiVersionError,
     AuthenticationError,
@@ -43,6 +42,7 @@ from .errors import (
     UnsupportedMediaTypeError,
 )
 from .evaluation import EvaluationAssertion, EvaluationCase, EvaluationResult
+from .events import CloudEvent
 from .idempotency import IdempotencyKey
 from .lifecycle import is_approval_terminal, is_execution_terminal, is_run_terminal
 from .mcp import MCPAuthMetadata, MCPServerSpec, MCPToolRef, MCPTransportSpec
