@@ -2,7 +2,7 @@ name: Security
 
 on:
   push:
-    branches: [main]
+    branches: [main, "phase/p3-*"]
   pull_request:
 
 permissions:
