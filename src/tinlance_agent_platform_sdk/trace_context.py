@@ -61,7 +61,7 @@ class TraceEvidenceRef:
 
 
 @dataclass(frozen=True, slots=True)
-class TraceContext:
+class TraceLineageContext:
     trace_id: str
     span_id: str
     correlation_id: str
@@ -154,9 +154,9 @@ class TraceContext:
             value["safe_attributes"] = {key: val for key, val in self.safe_attributes}
         return value
 
-    def child(self, *, span_id: str, operation: str, started_at: str) -> "TraceContext":
+    def child(self, *, span_id: str, operation: str, started_at: str) -> "TraceLineageContext":
         """Create a child span while preserving trace, request, tenant and correlation scope."""
-        return TraceContext(
+        return TraceLineageContext(
             trace_id=self.trace_id,
             span_id=span_id,
             parent_span_id=self.span_id,
