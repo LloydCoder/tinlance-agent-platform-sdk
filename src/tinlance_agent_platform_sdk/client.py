@@ -59,6 +59,8 @@ def _normalize_request_id(value: str) -> str:
 def _validate_traceparent(value: str) -> str:
     if not _TRACEPARENT.fullmatch(value):
         raise ValueError("traceparent must use W3C Trace Context format")
+    if value[:2] != "00":
+        raise ValueError("traceparent version must be 00")
     trace_id = value[3:35]
     span_id = value[36:52]
     if trace_id == "0" * 32 or span_id == "0" * 16:
