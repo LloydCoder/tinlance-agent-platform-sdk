@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass
 from collections.abc import Mapping
+from dataclasses import dataclass
 from datetime import datetime
 from types import MappingProxyType
 from typing import Any
