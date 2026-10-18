@@ -18,7 +18,8 @@ _SUPPORTED_PROTOCOL_VERSIONS = frozenset(
     {"2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"}
 )
 _SENSITIVE_METADATA_KEY = re.compile(
-    r"(?:^|[_-])(authorization|token|secret|password|credential|api[_-]?key|private[_-]?key)(?:$|[_-])",
+    r"(?:^|[_-])(authorization|token|secret|password|credential|api[_-]?key|private[_-]?key)"
+    r"(?:$|[_-])",
     re.IGNORECASE,
 )
 _SENSITIVE_METADATA_VALUE = re.compile(
