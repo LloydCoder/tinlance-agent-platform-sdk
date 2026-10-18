@@ -27,6 +27,10 @@ def _uri_reference(value: str, name: str, *, absolute: bool = False) -> None:
     parsed = urlsplit(value)
     if absolute and not parsed.scheme:
         raise ValueError(f"{name} must be an absolute URI")
+    if parsed.scheme.lower() in {"http", "https"} and not parsed.netloc:
+        raise ValueError(f"{name} must include an authority for HTTP(S) URIs")
+    if parsed.username is not None or parsed.password is not None:
+        raise ValueError(f"{name} must not embed credentials")
 
 
 def _freeze_json(value: Any) -> Any:
