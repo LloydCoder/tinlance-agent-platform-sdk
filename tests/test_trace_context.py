@@ -32,6 +32,7 @@ def test_trace_lineage_serializes_correlation_and_digest_addressed_evidence() ->
     assert payload["schema_version"] == "trace-context/v1"
     assert payload["trace_id"] == "4bf92f3577b34da6a3ce929d0e0e4736"
     assert payload["tenant_id"] == "tenant-a"
+    assert child.as_headers()["traceparent"] == "00-4bf92f3577b34da6a3ce929d0e0e4736-1111111111111111-00"
     assert payload["evidence_refs"][0]["sha256"] == "a" * 64
     assert "authorization" not in payload
 
