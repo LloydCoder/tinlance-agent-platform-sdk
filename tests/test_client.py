@@ -646,3 +646,15 @@ def test_r10_execution_and_approval_contract(fake: FakePlatform) -> None:
     assert fake.headers[-3]["idempotency-key"] == key
     assert fake.requests[-2]["operation"] == "tools.execute"
     assert fake.headers[-2]["idempotency-key"] == key + "-exec"
+
+
+@pytest.mark.parametrize("version", ["01", "ff"])
+def test_unsupported_traceparent_version_is_rejected(version: str) -> None:
+    with pytest.raises(ValueError, match="version must be 00"):
+        AgentPlatform(
+            base_url="https://example.com",
+            bearer_token=TOKEN,
+            tenant_id=TENANT,
+            subject_id=SUBJECT,
+            traceparent=f"{version}-11111111111111111111111111111111-2222222222222222-01",
+        )
