@@ -101,3 +101,24 @@ def test_retry_policy_does_not_retry_consequential_without_opt_in() -> None:
     )
     assert not default.allows(consequential=True, status_code=503)
     assert opted_in.allows(consequential=True, status_code=503)
+
+
+def test_retry_call_does_not_repeat_consequential_operation_by_default() -> None:
+    attempts = 0
+
+    def operation() -> None:
+        nonlocal attempts
+        attempts += 1
+        raise RuntimeError("provider timed out after possible side effect")
+
+    def status_getter(_: BaseException) -> tuple[int | None, str | None]:
+        return 503, None
+
+    with pytest.raises(RuntimeError, match="possible side effect"):
+        retry_call(
+            operation,
+            policy=RetryPolicy(max_attempts=4, initial_delay=0, jitter=0),
+            consequential=True,
+            status_getter=status_getter,
+        )
+    assert attempts == 1
