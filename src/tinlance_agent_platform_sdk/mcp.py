@@ -15,11 +15,6 @@ from urllib.parse import urlparse
 MCPTransport = Literal["streamable_http", "stdio"]
 MCPProtocolVersion = Literal["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"]
 _SUPPORTED_PROTOCOL_VERSIONS = frozenset({"2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"})
-_SENSITIVE_METADATA_KEY = re.compile(
-    r"(?:^|[_-])(authorization|token|secret|password|credential|api[_-]?key|private[_-]?key)"
-    r"(?:$|[_-])",
-    re.IGNORECASE,
-)
 _SENSITIVE_METADATA_VALUE = re.compile(
     r"(?i)(?:\bbearer\s+\S+|(?:api[_-]?key|client[_-]?secret|password|access[_-]?token)"
     r"\s*[:=]\s*\S+|-----BEGIN [A-Z ]*PRIVATE KEY-----|"
@@ -38,7 +33,19 @@ def _validate_metadata(metadata: tuple[tuple[str, str], ...]) -> None:
         if normalized in seen:
             raise ValueError("MCP metadata keys must be unique")
         seen.add(normalized)
-        if _SENSITIVE_METADATA_KEY.search(key) or _SENSITIVE_METADATA_VALUE.search(value):
+        normalized_key = re.sub(r"[^a-z0-9]", "", key.casefold())
+        sensitive_markers = (
+            "authorization",
+            "token",
+            "secret",
+            "password",
+            "credential",
+            "apikey",
+            "privatekey",
+        )
+        if any(marker in normalized_key for marker in sensitive_markers) or (
+            _SENSITIVE_METADATA_VALUE.search(value)
+        ):
             raise ValueError("credential-shaped metadata is not permitted")
 
 
