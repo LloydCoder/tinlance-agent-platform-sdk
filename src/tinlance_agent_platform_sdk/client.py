@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 import ssl
 import time
@@ -430,10 +431,14 @@ class AgentPlatform:
         self._credential_provider = credential_provider
         self._tenant_id = _required_text(tenant_id, "tenant_id")
         self._subject_id = _required_text(subject_id, "subject_id")
-        if timeout <= 0:
-            raise ValueError("timeout must be positive")
-        if max_response_bytes <= 0:
-            raise ValueError("max_response_bytes must be positive")
+        if not math.isfinite(timeout) or timeout <= 0:
+            raise ValueError("timeout must be finite and positive")
+        if (
+            not isinstance(max_response_bytes, int)
+            or isinstance(max_response_bytes, bool)
+            or max_response_bytes <= 0
+        ):
+            raise ValueError("max_response_bytes must be a positive integer")
         if not user_agent.strip():
             raise ValueError("user_agent must be non-empty")
         self._max_response_bytes = max_response_bytes
