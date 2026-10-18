@@ -117,8 +117,15 @@ class CloudEvent:
             "data": dict(self.data),
         }
         for name in (
-            "subject", "spanid", "causationid", "workspaceid", "organizationid",
-            "actorid", "agentid", "dataclassification", "dataschema",
+            "subject",
+            "spanid",
+            "causationid",
+            "workspaceid",
+            "organizationid",
+            "actorid",
+            "agentid",
+            "dataclassification",
+            "dataschema",
         ):
             value = getattr(self, name)
             if value is not None:
