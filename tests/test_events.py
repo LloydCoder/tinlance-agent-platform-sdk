@@ -40,6 +40,11 @@ def test_cloud_event_serializes_cloud_events_names_and_context() -> None:
         {"spanid": "0" * 16},
         {"spanid": "bad"},
         {"time": "2026-10-18T04:00:00"},
+        {"source": "not a URI"},
+        {"source": "https://"},
+        {"source": "https://user:password@example.test/events"},
+        {"dataschema": "/relative/schema.json"},
+        {"dataschema": "https://"},
         {"tenantid": " tenant-a"},
         {"datacontenttype": "text/plain"},
         {"specversion": "2.0"},
@@ -56,3 +61,12 @@ def test_cloud_event_does_not_expose_mutable_input_mapping() -> None:
     event = make_event(data=data)
     data["state"] = "failed"
     assert event.as_payload()["data"]["state"] == "succeeded"
+
+
+def test_nested_event_payload_is_immutable() -> None:
+    data = {"nested": {"state": "succeeded"}}
+    event = make_event(data=data)
+    data["nested"]["state"] = "failed"
+    with pytest.raises(TypeError):
+        event.data["nested"]["state"] = "mutated"
+    assert event.as_payload()["data"]["nested"]["state"] == "succeeded"
