@@ -3,6 +3,7 @@
 Events are untrusted observations, not authority grants. The Platform remains
 the sole authority for identity, policy, approvals and consequential execution.
 """
+
 from __future__ import annotations
 
 import json
