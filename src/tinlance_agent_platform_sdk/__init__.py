@@ -95,6 +95,7 @@ __all__ = [
     "ApprovalWorkflow",
     "Agent",
     "ClientConfig",
+    "TraceContext",
     "TraceLineageContext",
     "TraceEvidenceRef",
     "ApprovalRequest",
