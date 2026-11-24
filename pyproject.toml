@@ -34,7 +34,7 @@ test = [
 ]
 security = [
   "pip-audit>=2.9,<3",
-  "cyclonedx-bom>=7,<9",
+  "cyclonedx-bom>=7,<10",
 ]
 
 [project.urls]
